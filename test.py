@@ -51,3 +51,4 @@ class DflatTests(unittest.TestCase):
         self.assertTrue('data/a' in manifest)
         self.assertTrue('data/c/2' in manifest)
         self.assertTrue('data/c/1' in manifest)
+
