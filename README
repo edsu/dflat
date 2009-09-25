@@ -1,0 +1,6 @@
+A python client implementation of the dflat specification for simple 
+file-based object storage.
+
+  http://www.cdlib.org/inside/diglib/dflat/dflatspec.pdf
+
+Ed Summers <ehs@pobox.com>
