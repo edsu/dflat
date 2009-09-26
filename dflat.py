@@ -16,7 +16,7 @@ def init(home):
     version = _new_version(home)
     # move original inhabitants into their new apartment
     for f in contents:
-        rename(j(home, f), j(home, version, 'data', f))
+        rename(j(home, f), j(home, version, 'full', 'data', f))
     _update_manifest(j(home, version))
     _release_lock(home)
 
@@ -24,14 +24,14 @@ def checkout(home):
     pass
 
 def _update_manifest(version_dir): 
-    manifest_file = j(version_dir, 'manifest.txt')
+    manifest_file = j(version_dir, 'full', 'manifest.txt')
     manifest = open(manifest_file, 'w')
     for dirpath, dirnames, filenames in walk(version_dir):
         for filename in filenames:
             if filename == 'manifest.txt':
                 continue
             # make the filename relative to the version directory
-            rel_dirpath = dirpath.replace(version_dir + '/', '')
+            rel_dirpath = dirpath.replace(j(version_dir, 'full') + '/', '')
             manifest.write("%s\n" % j(rel_dirpath, filename))
     manifest.close()
     return manifest_file
@@ -48,13 +48,14 @@ def _release_lock(home):
 def _new_version(home):
     v = _next_version(home)
     mkdir(j(home, v))
-    mkdir(j(home, v, 'admin'))
-    mkdir(j(home, v, 'annotation'))
-    mkdir(j(home, v, 'data'))
-    mkdir(j(home, v, 'enrichment'))
-    open(j(home, v, 'manifest.txt'), 'w')
-    open(j(home, v, 'relationships.ttl'), 'w')
-    open(j(home, v, 'splash.txt'), 'w')
+    mkdir(j(home, v, 'full'))
+    mkdir(j(home, v, 'full', 'admin'))
+    mkdir(j(home, v, 'full', 'annotation'))
+    mkdir(j(home, v, 'full', 'data'))
+    mkdir(j(home, v, 'full', 'enrichment'))
+    open(j(home, v, 'full', 'manifest.txt'), 'w')
+    open(j(home, v, 'full', 'relationships.ttl'), 'w')
+    open(j(home, v, 'full', 'splash.txt'), 'w')
 
     # chdir to make symlink relative, so the dflat can be relocated
     pwd = getcwd()

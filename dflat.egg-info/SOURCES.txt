@@ -1,3 +1,4 @@
+README
 setup.py
 dflat.egg-info/PKG-INFO
 dflat.egg-info/SOURCES.txt
