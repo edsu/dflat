@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-from os import chdir, getcwd, listdir, mkdir, rename, symlink, walk
+from os import chdir, getcwd, listdir, mkdir, rename, symlink, walk, readlink, \
+               remove
 from os.path import join as j
-from re import match
+
+import re
+import shutil
 
 def init(home):
     _get_lock(home)
@@ -17,24 +20,39 @@ def init(home):
     # move original inhabitants into their new apartment
     for f in contents:
         rename(j(home, f), j(home, version, 'full', 'data', f))
-    _update_manifest(j(home, version))
+    update_manifest(j(home, version))
     _release_lock(home)
 
 def checkout(home):
-    pass
+    _get_lock(home)
+    curr_version = current_version(home)
+    new_version = _next_version(home)
+    shutil.copytree(j(home, curr_version), j(home, new_version))
+    return new_version
 
-def _update_manifest(version_dir): 
-    manifest_file = j(version_dir, 'full', 'manifest.txt')
+def commit(home):
+    # calculate differences
+    latest_version = _latest_version(home)
+    remove(j(home, 'current'))
+    symlink(j(home, _latest_version(home)), j(home, 'current'))
+    return latest_version
+
+def update_manifest(version_dir): 
+    full_dir = j(version_dir, 'full')
+    manifest_file = j(full_dir, 'manifest.txt')
     manifest = open(manifest_file, 'w')
-    for dirpath, dirnames, filenames in walk(version_dir):
+    for dirpath, dirnames, filenames in walk(full_dir):
         for filename in filenames:
-            if filename == 'manifest.txt':
+            if not dirpath and filename in ('manifest.txt', 'lock.txt'):
                 continue
-            # make the filename relative to the version directory
-            rel_dirpath = dirpath.replace(j(version_dir, 'full') + '/', '')
-            manifest.write("%s\n" % j(rel_dirpath, filename))
+            # make the filename relative to the 'full' directory
+            dirpath = re.sub(r'^%s/?' % full_dir, '', dirpath)
+            manifest.write("%s\n" % j(dirpath, filename))
     manifest.close()
     return manifest_file
+
+def current_version(home):
+    return readlink(j(home, 'current'))
 
 def _anvl(name, value):
     return "%s: %s\n"
@@ -80,12 +98,13 @@ def _latest_version(home):
         return versions.pop()
 
 def _versions(home):
-    versions = filter(lambda x: match('^v\d+$', x), listdir(home))
+    versions = filter(lambda x: re.match('^v\d+$', x), listdir(home))
     versions.sort(lambda a, b: cmp(_version_number(a), _version_number(b)))
     return versions
 
 def _version_number(version_dir):
     return int(version_dir[1:])
+
 
 def main(cmd):
     if cmd == 'init':
