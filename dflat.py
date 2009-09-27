@@ -1,14 +1,21 @@
-#!/usr/bin/env python
-
-from os import chdir, getcwd, listdir, mkdir, rename, symlink, walk, readlink, \
-               remove
 from os.path import join as j
+from os import chdir, getcwd, listdir, mkdir, rename, symlink, walk, \
+               readlink, remove
 
 import re
 import shutil
 
+# decorator for commands to obtain and release lock before
+# performing operations on the dflat
+def lock(f):
+    def new_f(home, *args, **opts):
+        _get_lock(home)
+        f(home, *args, **opts)
+        _release_lock(home)
+    return new_f
+
+@lock
 def init(home):
-    _get_lock(home)
     contents = filter(lambda x: x != 'lock.txt', listdir(home))
     info = open(j(home, 'dflat-info.txt'), 'w')
     info.write(_anvl('This', 'Dflat/0.10'))
@@ -21,22 +28,23 @@ def init(home):
     for f in contents:
         rename(j(home, f), j(home, version, 'full', 'data', f))
     update_manifest(j(home, version))
-    _release_lock(home)
 
+@lock
 def checkout(home):
-    _get_lock(home)
     curr_version = current_version(home)
     new_version = _next_version(home)
     shutil.copytree(j(home, curr_version), j(home, new_version))
     return new_version
 
-def commit(home):
-    # calculate differences
+@lock
+def commit(home, msg=None):
+    # TODO: calculate differences, and layer them into vn-1
     latest_version = _latest_version(home)
     remove(j(home, 'current'))
     symlink(j(home, _latest_version(home)), j(home, 'current'))
     return latest_version
 
+@lock
 def update_manifest(version_dir): 
     full_dir = j(version_dir, 'full')
     manifest_file = j(full_dir, 'manifest.txt')
@@ -58,9 +66,11 @@ def _anvl(name, value):
     return "%s: %s\n"
 
 def _get_lock(home):
+    # TODO: get lock in home
     pass
 
 def _release_lock(home):
+    # TODO: release lock in home
     pass
 
 def _new_version(home):
