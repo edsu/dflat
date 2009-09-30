@@ -1,0 +1,481 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en"><head>
+<title>Repository Working Group: Checkm: a checksum-based manifest format</title>
+<meta http-equiv="Expires" content="Fri, 19 Jun 2009 00:03:40 +0000">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="description" content="Checkm: a checksum-based manifest format">
+<meta name="generator" content="xml2rfc v1.32 (http://xml.resource.org/)">
+<style type="text/css"><!--
+        body {
+                font-family: verdana, charcoal, helvetica, arial, sans-serif;
+                font-size: small; color: #000; background-color: #FFF;
+                margin: 2em;
+        }
+        h1, h2, h3, h4, h5, h6 {
+                font-family: helvetica, monaco, "MS Sans Serif", arial, sans-serif;
+                font-weight: bold; font-style: normal;
+        }
+        h1 { color: #900; background-color: transparent; text-align: right; }
+        h3 { color: #333; background-color: transparent; }
+
+        td.RFCbug {
+                font-size: x-small; text-decoration: none;
+                width: 30px; height: 30px; padding-top: 2px;
+                text-align: justify; vertical-align: middle;
+                background-color: #000;
+        }
+        td.RFCbug span.RFC {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: bold; color: #666;
+        }
+        td.RFCbug span.hotText {
+                font-family: charcoal, monaco, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+                font-weight: normal; text-align: center; color: #FFF;
+        }
+
+        table.TOCbug { width: 30px; height: 15px; }
+        td.TOCbug {
+                text-align: center; width: 30px; height: 15px;
+                color: #FFF; background-color: #900;
+        }
+        td.TOCbug a {
+                font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, sans-serif;
+                font-weight: bold; font-size: x-small; text-decoration: none;
+                color: #FFF; background-color: transparent;
+        }
+
+        td.header {
+                font-family: arial, helvetica, sans-serif; font-size: x-small;
+                vertical-align: top; width: 33%;
+                color: #FFF; background-color: #666;
+        }
+        td.author { font-weight: bold; font-size: x-small; margin-left: 4em; }
+        td.author-text { font-size: x-small; }
+
+        /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+        a.info {
+                /* This is the key. */
+                position: relative;
+                z-index: 24;
+                text-decoration: none;
+        }
+        a.info:hover {
+                z-index: 25;
+                color: #FFF; background-color: #900;
+        }
+        a.info span { display: none; }
+        a.info:hover span.info {
+                /* The span will display just on :hover state. */
+                display: block;
+                position: absolute;
+                font-size: smaller;
+                top: 2em; left: -5em; width: 15em;
+                padding: 2px; border: 1px solid #333;
+                color: #900; background-color: #EEE;
+                text-align: left;
+        }
+
+        a { font-weight: bold; }
+        a:link    { color: #900; background-color: transparent; }
+        a:visited { color: #633; background-color: transparent; }
+        a:active  { color: #633; background-color: transparent; }
+
+        p { margin-left: 2em; margin-right: 2em; }
+        p.copyright { font-size: x-small; }
+        p.toc { font-size: small; font-weight: bold; margin-left: 3em; }
+        table.toc { margin: 0 0 0 3em; padding: 0; border: 0; vertical-align: text-top; }
+        td.toc { font-size: small; font-weight: bold; vertical-align: text-top; }
+
+        ol.text { margin-left: 2em; margin-right: 2em; }
+        ul.text { margin-left: 2em; margin-right: 2em; }
+        li      { margin-left: 3em; }
+
+        /* RFC-2629 <spanx>s and <artwork>s. */
+        em     { font-style: italic; }
+        strong { font-weight: bold; }
+        dfn    { font-weight: bold; font-style: normal; }
+        cite   { font-weight: normal; font-style: normal; }
+        tt     { color: #036; }
+        tt, pre, pre dfn, pre em, pre cite, pre span {
+                font-family: "Courier New", Courier, monospace; font-size: small;
+        }
+        pre {
+                text-align: left; padding: 4px;
+                color: #000; background-color: #CCC;
+        }
+        pre dfn  { color: #900; }
+        pre em   { color: #66F; background-color: #FFC; font-weight: normal; }
+        pre .key { color: #33C; font-weight: bold; }
+        pre .id  { color: #900; }
+        pre .str { color: #000; background-color: #CFF; }
+        pre .val { color: #066; }
+        pre .rep { color: #909; }
+        pre .oth { color: #000; background-color: #FCF; }
+        pre .err { background-color: #FCC; }
+
+        /* RFC-2629 <texttable>s. */
+        table.all, table.full, table.headers, table.none {
+                font-size: small; text-align: center; border-width: 2px;
+                vertical-align: top; border-collapse: collapse;
+        }
+        table.all, table.full { border-style: solid; border-color: black; }
+        table.headers, table.none { border-style: none; }
+        th {
+                font-weight: bold; border-color: black;
+                border-width: 2px 2px 3px 2px;
+        }
+        table.all th, table.full th { border-style: solid; }
+        table.headers th { border-style: none none solid none; }
+        table.none th { border-style: none; }
+        table.all td {
+                border-style: solid; border-color: #333;
+                border-width: 1px 2px;
+        }
+        table.full td, table.headers td, table.none td { border-style: none; }
+
+        hr { height: 1px; }
+        hr.insert {
+                width: 80%; border-style: none; border-width: 0;
+                color: #CCC; background-color: #CCC;
+        }
+--></style>
+</head><body>
+<table summary="layout" border="0" cellpadding="0" cellspacing="0" width="66%"><tbody><tr><td><table summary="layout" border="0" cellpadding="2" cellspacing="1" width="100%">
+<tbody><tr><td class="header">Repository Working Group</td><td class="header">J. Kunze</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">California Digital Library</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">April 20, 2009</td></tr>
+</tbody></table></td></tr></tbody></table>
+<h1><br>Checkm: a checksum-based manifest format</h1>
+
+<h3>Abstract</h3>
+
+<p>
+Checkm is a general-purpose text-based file manifest format.  Each line
+of a Checkm manifest is a set of whitespace-separated tokens, the first
+of which identifies the corresponding digital content by filename or URL.
+Other tokens identify digest algorithm, checksum, content length, and
+modification time.  Tokens may be left unspecified with '-', the
+degenerate case being a simple file list.  It is up to tools that use the
+Checkm format to specify any further restrictions on tokens (e.g.,
+allowed defaults and digest algorithms) and overall manifest completeness
+and coherence.  Checkm is designed to support tools that verify the
+bit-level integrity of groups of files in support of such things as
+content fixity, replication, import, and export.  A manifest may be
+single-level or multi-level (hierarchical), the latter being useful, for
+example, in harvesting material from very large web sites (cf. sitemaps).
+
+</p>
+<a name="anchor1"></a><br><hr>
+<a name="rfc.section.1"></a><h3>1.&nbsp;
+Checkm overview</h3>
+
+<p>
+Checkm (pronounced "check 'em") is a simple text-based manifest format
+for digital content.  A manifest is a set of lines, each of which
+describes a unit of content via up to six whitespace-separated tokens.
+The meaning of a token is given by its position within the line.  For
+example, the first three tokens give the name of the content, a checksum
+algorithm, and a digest (checksum) computed using that algorithm,
+respectively.  Here's a a manifest identifying two files with MD5
+checksums.
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># My first manifest.  Two files total.
+# Filename         Algorithm   Digest
+book/Chapter9.xml     md5      49afbd86a1ca9f34b677a3f09655eae9
+images/r862.png       md5      408ad21d50cef31da4df6d9ed81b01a7
+</pre></div><p>
+
+
+Checkm is purely concerned with format and not with such things as
+completeness and fitness for a given application.  So it defines the
+meanings of the six tokens but does not mandate their use.  For example,
+a file package transfer tool could require use of four tokens, only two
+of which would be required by a fixity checking tool.  The next example
+is a bare-bones manifest in which all but the first token have been
+dropped, which is a useful degenerate case when only a list of named
+units of content is needed.
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># My second manifest.  Just a list of files.
+# Filename          (no other tokens given)
+http://example.org/i/chap9.xml
+http://example.org/i/chap9fig2.png
+</pre></div><p>
+
+
+</p>
+<p>
+To leave tokens unspecified that would occur in the middle rather than at
+the end of a line, give those tokens as '-'.  For example, a package
+transfer application that also renames files might use the following
+manifest.
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># My third manifest.
+# Filename and Target specified, not Alg, Digest, Length, or ModTime
+http://example.org/i/chap9.xml      -   -   -   -  book/Chapter9.xml
+http://example.org/i/chap9fig2.png  -   -   -   -  images/r862.png
+</pre></div><p>
+
+
+</p>
+<p>
+Each non-comment line can contain up to six tokens, and has the form,
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre>[@]SourceFileOrURL  Alg  Digest  Length  ModTime  TargetFileOrURL
+</pre></div><p>
+
+
+where
+<tt>[@]</tt> indicates an optional '@' that causes the
+identified content to be "included" as a manifest extension.  In
+principle there is no upper or lower limit on the number of lines in a
+Checkm manifest, however, practical considerations may call for extending
+a single-level manifest to a multi-level manifest.
+
+</p>
+<a name="anchor2"></a><br><hr>
+<a name="rfc.section.2"></a><h3>2.&nbsp;
+Multi-level manifests</h3>
+
+<p>
+If supported, a multi-level manifest permits one large manifest to be
+spread over a number of smaller manifests.  To trigger this, the
+SourceFileOrURL token that begins a line is preceded by a literal '@'.
+It invokes a simple inclusion mechanism indicating that the identified
+content is also in Checkm format and extends the current manifest; this
+is similar to mainstream sitemap extension mechanisms
+(cf. <a class="info" href="#SITEMAPS">[SITEMAPS]<span> (</span><span class="info">sitemaps.org, “Sitemaps XML format,” February&nbsp;2008.</span><span>)</span></a>).
+A tool can be said to support only single-level Checkm if it does not
+support multi-level manifests.
+
+</p>
+<p>
+Included manifests may themselves recursively include other manifests.
+There is no limit either to the number of inclusions or to the depth of a
+multi-level manifest.  Cycles in the inclusion graph are generally
+considered to be in poor taste.
+
+</p>
+<a name="anchor3"></a><br><hr>
+<a name="rfc.section.3"></a><h3>3.&nbsp;
+Checkm lines</h3>
+
+<p>
+The Checkm tokens on a given line all relate to the unit of
+content identified by the first token on the line.  A unit of content is
+a contiguous sequence of octets (e.g., a file) identified by a filename
+or URL.  Manifest lines end with either LF (hex 0a) or CRLF (hex 0d0a),
+and lines that begin with '#' are considered "comments" that are to be
+ignored by processors.  Blank lines are also ignored.
+
+</p>
+<p>
+Tokens consist of UTF-8 characters <a class="info" href="#RFC3629">[RFC3629]<span> (</span><span class="info">Yergeau, F., “UTF-8, a transformation format of ISO 10646,” November&nbsp;2003.</span><span>)</span></a> separated by
+linear whitespace (one or more SPACE and/or TAB characters).  Any linear
+whitespace found at the start or end of a line is ignored.  Any
+characters, such as whitespace, not allowed in a URL must be represented
+using URL percent-encoding <a class="info" href="#RFC3986">[RFC3986]<span> (</span><span class="info">Berners-Lee, T., Fielding, R., and L. Masinter, “Uniform Resource Identifier (URI): Generic Syntax,” January&nbsp;2005.</span><span>)</span></a>.
+
+</p>
+<p>
+Tokens may be left unspecified by simply dropping them from the end of
+the line or by giving them as '-' (hyphen).  Checkm is silent about which
+tokens are required or prohibited and what defaults may be in effect.
+Checkm is also silent about manifest completeness (which units of content
+must be included) and hyper-specification (whether one unit of content
+can or must have more than one line describing it, e.g., resulting from
+two digest algorithms).
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre>[@]SourceFileOrURL  Alg  Digest  Length  ModTime  TargetFileOrURL
+TOKEN NUMBER:    1    2       3       4        5                6
+</pre></div><p>
+
+
+The token's numbered position determines its meaning, as explained in the
+correspondingly numbered subsections below.
+
+</p>
+<a name="anchor4"></a><br><hr>
+<a name="rfc.section.3.1"></a><h3>3.1.&nbsp;
+[@]SourceFileOrURL: content identifier</h3>
+
+<p>
+The SourceFileOrURL token identifies digital content, and may be given as
+'-' to leave it unspecified (e.g., the content might be found on Unix
+"stdin").  This token may be a URL or a relative or absolute filename.
+To prevent interpretation of a relative pathname that begins with '#' or
+'@', one can insert "./" in front of the name.  Whether this token is a
+filename or a URL, any characters not allowed in a URL must be
+represented using URL percent-encoding <a class="info" href="#RFC3986">[RFC3986]<span> (</span><span class="info">Berners-Lee, T., Fielding, R., and L. Masinter, “Uniform Resource Identifier (URI): Generic Syntax,” January&nbsp;2005.</span><span>)</span></a>.
+
+</p>
+<p>
+If any SourceFileOrURL token in a manifest is preceded by the optional '@',
+the line amounts to an "include" statement and the manifest is considered
+to be "multi-level".  Other tokens on that line still relate to the
+content but the "included" content itself is considered to be an
+extension of the current manifest.  For example, a multi-level Checkm
+manifest totaling 4 million lines could be represented by a 2000-line
+manifest, each line of which references a 2000-line single-level
+manifest.
+
+</p>
+<p>
+If none of the lines in a manifest is preceded by '@', the manifest is
+considered to be "single-level".  It is permissible for a tool that
+conforms to Checkm to declare support for only single-level manifests.
+
+</p>
+<a name="anchor5"></a><br><hr>
+<a name="rfc.section.3.2"></a><h3>3.2.&nbsp;
+Alg: algorithm</h3>
+
+<p>
+Alg is either the literal string "d" (designating a directory), a string
+specifying a cryptographic checksum algorithm, or '-' to leave it
+unspecified.  The special case of "d" is useful for listing an empty
+directory, which has neither a fixed octetstream over which to compute a
+digest nor a contained filename to imply the directory's existence.
+For example,
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># My fourth manifest.  Two files and a directory.
+# Filename         Algorithm   Digest
+book/Chapter9.xml     md5      49afbd86a1ca9f34b677a3f09655eae9
+icons/                d
+images/r862.png       md5      408ad21d50cef31da4df6d9ed81b01a7
+</pre></div><p>
+
+
+Implementors of tools that use Checkm are strongly encouraged to support
+at least two widely implemented checksum algorithms:
+
+</p>
+<blockquote class="text"><dl>
+<dt></dt>
+<dd> "md5" <a class="info" href="#RFC1321">[RFC1321]<span> (</span><span class="info">Rivest, R., “The MD5 Message-Digest Algorithm,” April&nbsp;1992.</span><span>)</span></a> 
+</dd>
+<dt></dt>
+<dd> "sha1" <a class="info" href="#RFC3174">[RFC3174]<span> (</span><span class="info">Eastlake, D. and P. Jones, “US Secure Hash Algorithm 1 (SHA1),” September&nbsp;2001.</span><span>)</span></a>  
+</dd>
+</dl></blockquote><p>
+
+When using other algorithms, the name of the algorithm should be
+normalized for use in the manifest's filename, by lowercasing the
+common name of the algorithm, and removing all non-alphanumeric 
+characters.
+
+</p>
+<a name="anchor6"></a><br><hr>
+<a name="rfc.section.3.3"></a><h3>3.3.&nbsp;
+Digest: computed checksum</h3>
+
+<p>
+Digest is a string representing the checksum calculated according
+to the Alg algorithm over the content, or '-' to leave it unspecified.
+
+</p>
+<a name="anchor7"></a><br><hr>
+<a name="rfc.section.3.4"></a><h3>3.4.&nbsp;
+Length of content</h3>
+
+<p>
+Length is the number (base 10) of octets in the identified content, or
+'-' to leave it unspecified.  It is typically useful in providing a rapid
+test for altered content and for estimating file transfer times.
+
+</p>
+<a name="anchor8"></a><br><hr>
+<a name="rfc.section.3.5"></a><h3>3.5.&nbsp;
+ModTime: time last modified</h3>
+
+<p>
+ModTime is a lexically sort-friendly date such as <a class="info" href="#TEMPER">[TEMPER]<span> (</span><span class="info">Blair, C. and J. Kunze, “Temporal Enumerated Ranges,” August&nbsp;2007.</span><span>)</span></a>
+('YYYYMMDDhhmmss') or <a class="info" href="#W3CDTF">[W3CDTF]<span> (</span><span class="info">, “Date and Time Formats (W3C profile of ISO8601),” .</span><span>)</span></a> (YYYY-MM-DDThh:mm:ss),
+or '-' to leave it unspecified.  It should represent the UTC time when
+the content was last modified and is typically useful in incremental or
+priority harvesting of content (cf. <a class="info" href="#OAI">[OAI]<span> (</span><span class="info">Lagoze, C. and H. Van de Sompel, “Open Archives Initiative Protocol for Metadata Harvesting,” June&nbsp;2002.</span><span>)</span></a> and
+<a class="info" href="#SITEMAPS">[SITEMAPS]<span> (</span><span class="info">sitemaps.org, “Sitemaps XML format,” February&nbsp;2008.</span><span>)</span></a>).
+
+</p>
+<a name="anchor9"></a><br><hr>
+<a name="rfc.section.3.6"></a><h3>3.6.&nbsp;
+TargetFileOrURL: other location</h3>
+
+<p>
+TargetFileOrURL is a secondary location for the content that applications
+would use as necessary.  For instance, a transfer tool that also renames
+files could use this token as the destination name.
+
+</p>
+<a name="anchor10"></a><br><hr>
+<a name="rfc.section.4"></a><h3>4.&nbsp;
+Example two-level Checkm manifest</h3>
+
+<p>
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># A two-level manifest.
+#Filename Alg  Checksum                                   Length
+foo.bar   sha1 2eacd0da7aa89b094f5121eb2901bf4de2219ef1    366
+foo.bar   md5  3e83471320227c0797a0c251f28db0c5            366
+# This next line "includes" the manifest in file "myfirst".
+@myfirst  md5  6ab96c8930621d50cef31da4df6d9ed8            264
+</pre></div><p>
+
+
+where the included file "myfirst" contains 264 octets and lists two files:
+
+</p>
+<div style="display: table; width: 0pt; margin-left: 3em; margin-right: auto;"><pre># My first manifest.  Two files total.
+# Filename         Algorithm   Digest
+book/Chapter9.xml     md5      49afbd86a1ca9f34b677a3f09655eae9
+images/r862.png       md5      408ad21d50cef31da4df6d9ed81b01a7
+</pre></div><p>
+
+
+</p>
+<a name="rfc.references1"></a><br><hr>
+<h3>5.&nbsp;References</h3>
+<table border="0" width="99%">
+<tbody><tr><td class="author-text" valign="top"><a name="OAI">[OAI]</a></td>
+<td class="author-text">Lagoze, C. and H. Van de Sompel, “<a href="http://www.openarchives.org/OAI/openarchivesprotocol.html">Open Archives Initiative Protocol for Metadata Harvesting</a>,” June&nbsp;2002 (<a href="http://www.openarchives.org/OAI/openarchivesprotocol.html">HTML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC3629">[RFC3629]</a></td>
+<td class="author-text">Yergeau, F., “<a href="ftp://ftp.isi.edu/in-notes/rfc3629.txt">UTF-8, a transformation format of ISO 10646</a>,” STD&nbsp;63, RFC&nbsp;3629, November&nbsp;2003.</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC1321">[RFC1321]</a></td>
+<td class="author-text"><a href="mailto:rivest@theory.lcs.mit.edu">Rivest, R.</a>, “<a href="ftp://ftp.isi.edu/in-notes/rfc1321.txt">The MD5 Message-Digest Algorithm</a>,” RFC&nbsp;1321, April&nbsp;1992.</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC3174">[RFC3174]</a></td>
+<td class="author-text">Eastlake, D. and P. Jones, “<a href="ftp://ftp.isi.edu/in-notes/rfc3174.txt">US Secure Hash Algorithm 1 (SHA1)</a>,” RFC&nbsp;3174, September&nbsp;2001.</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC3986">[RFC3986]</a></td>
+<td class="author-text"><a href="mailto:timbl@w3.org">Berners-Lee, T.</a>, <a href="mailto:fielding@gbiv.com">Fielding, R.</a>, and <a href="mailto:LMM@acm.org">L. Masinter</a>, “<a href="ftp://ftp.isi.edu/in-notes/rfc3986.txt">Uniform Resource Identifier (URI): Generic Syntax</a>,” STD&nbsp;66, RFC&nbsp;3986, January&nbsp;2005 (<a href="ftp://ftp.isi.edu/in-notes/rfc3986.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc3986.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc3986.xml">XML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="SITEMAPS">[SITEMAPS]</a></td>
+<td class="author-text">sitemaps.org, “<a href="http://sitemaps.org/protocol.php">Sitemaps XML format</a>,” February&nbsp;2008 (<a href="http://sitemaps.org/protocol.php">HTML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="TEMPER">[TEMPER]</a></td>
+<td class="author-text">Blair, C. and J. Kunze, “<a href="http://www.cdlib.org/inside/diglib/ark/temperspec.pdf">Temporal Enumerated Ranges</a>,” August&nbsp;2007 (<a href="http://www.cdlib.org/inside/diglib/ark/temperspec.pdf">PDF</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="W3CDTF">[W3CDTF]</a></td>
+<td class="author-text">“<a href="http://www.w3.org/TR/NOTE-datetime">Date and Time Formats (W3C profile of ISO8601)</a>” (<a href="http://www.w3.org/TR/NOTE-datetime">HTML</a>).</td></tr>
+</tbody></table>
+
+<a name="rfc.authors"></a><br><hr>
+<h3>Author's Address</h3>
+<table border="0" cellpadding="0" cellspacing="0" width="99%">
+<tbody><tr><td class="author-text">&nbsp;</td>
+<td class="author-text">John A. Kunze</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">California Digital Library</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">415 20th St, 4th Floor</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Oakland, CA  94612</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">US</td></tr>
+<tr><td class="author" align="right">Fax:&nbsp;</td>
+<td class="author-text">+1 510-893-5212</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:jak@ucop.edu">jak@ucop.edu</a></td></tr>
+</tbody></table>
+</body></html>

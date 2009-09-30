@@ -1,6 +1,6 @@
-from os.path import join as j
-from os import chdir, getcwd, listdir, mkdir, rename, symlink, walk, \
-               readlink, remove
+from os import chdir, getcwd, listdir, mkdir, rename, renames, \
+               symlink, walk, readlink, remove
+from os.path import join as j, abspath, dirname, isdir
 
 import re
 import urllib
@@ -30,37 +30,79 @@ def init(home):
     # move original inhabitants into their new apartment
     for f in contents:
         rename(j(home, f), j(home, version, 'full', 'data', f))
-    update_manifest(j(home, version))
+    _update_manifest(j(home, version))
 
 @lock
 def checkout(home):
-    curr_version = current_version(home)
+    curr_version = _current_version(home)
     new_version = _next_version(home)
     shutil.copytree(j(home, curr_version), j(home, new_version))
     return new_version
 
 @lock
 def commit(home, msg=None):
-    # TODO: calculate differences, and layer them into vn-1
-    latest_version = _latest_version(home)
+    v1 = _current_version(home)
+    v2 = _latest_version(home)
+    if v1 == v2:
+        print "nothing to commit"
+        return
+
+    delta = _delta(home, v1, v2)
+    if not _has_changes(delta):
+        print "no changes"
+        return 
+
+    redd_home = j(home, v1, 'redd')
+    mkdir(redd_home)
+    open(j(redd_home, '0=redd_0.1'), 'w').write('redd 0.1')
+
+    if len(delta['deleted']) > 0:
+        mkdir(j(redd_home, 'add'))
+        for filename in delta['deleted']:
+            print j(home, v1, 'full', filename)
+            renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
+    if len(delta['added']) > 0:
+        delete = open(j(redd_home, 'delete.txt'), 'w')
+        for filename in delta['added']:
+            delete.write("%s\n" % filename)
+        delete.close()
+    if len(delta['modified']) > 0:
+        if not isdir(j(redd_home, 'add')):
+            mkdir(j(redd_home, 'add'))
+        delete = open(j(redd_home, 'delete.txt'), 'a')
+        for filename in delta['modified']:
+            delete.write("%s\n" % filename)
+            renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
+        delete.close()
+    shutil.rmtree(j(home, v1, 'full'))
     remove(j(home, 'current'))
-    symlink(j(home, _latest_version(home)), j(home, 'current'))
-    return latest_version
+    symlink(j(home, v2), j(home, 'current'))
+    return v2
 
 @lock
 def status(home):
-    new = _find_add(home)
-    modified = _find_modify(home)
-    deleted = _find_delete(home)
-    return {'add': new, 'modify': modified, 'delete': deleted}
+    print "dflat home: %s" % home
+    v1 = _current_version(home)
+    print "current version: %s" % v1
+    v2 = _latest_version(home)
+    if v1 == v2:
+        print "no changes"
+        delta = None
+    else:
+        _update_manifest(j(home, v2))
+        delta = _delta(home, v1, v2)
+        _print_delta_files(delta, 'added')
+        _print_delta_files(delta, 'modified')
+        _print_delta_files(delta, 'deleted')
+    return delta
 
-@lock
-def update_manifest(version_dir): 
+def _update_manifest(version_dir): 
     full_dir = j(version_dir, 'full')
     manifest_file = j(full_dir, 'manifest.txt')
     manifest = open(manifest_file, 'w')
     for dirpath, dirnames, filenames in walk(full_dir):
         for filename in filenames:
+            # don't include manifest.txt in manifest :)
             if not dirpath and filename in ('manifest.txt', 'lock.txt'):
                 continue
             # make the filename relative to the 'full' directory
@@ -71,7 +113,7 @@ def update_manifest(version_dir):
     manifest.close()
     return manifest_file
 
-def current_version(home):
+def _current_version(home):
     return readlink(j(home, 'current'))
 
 def _anvl(name, value):
@@ -124,15 +166,6 @@ def _versions(home):
     versions.sort(lambda a, b: cmp(_version_number(a), _version_number(b)))
     return versions
 
-def _find_add(home):
-    return ['data/d']
-
-def _find_modify(home):
-    return []
-
-def _find_delete(home):
-    return []
-
 def _version_number(version_dir):
     return int(version_dir[1:])
 
@@ -147,15 +180,68 @@ def _md5(filename):
     f.close()
     return m.hexdigest()
 
+def _delta(home, v1, v2):
+    delta = {'modified': [], 'deleted': [], 'added': []}
+    manifest_v1 = _manifest_dict(home, v1)
+    manifest_v2 = _manifest_dict(home, v2)
+    for filename in manifest_v2.keys():
+        if manifest_v1.has_key(filename):
+            if manifest_v2[filename] != manifest_v1[filename]:
+                delta['modified'].append(filename)
+        else:
+            delta['added'].append(filename)
+    for filename in manifest_v1.keys():
+        if not manifest_v2.has_key(filename):
+            delta['deleted'].append(filename)
+    return delta
+
+def _print_delta_files(delta, dtype):
+    files = delta[dtype]
+    files.sort()
+    if len(files) > 0:
+        print "%s:" % dtype
+        for filename in files:
+            print "  %s" % urllib.unquote(filename)
+
+def _has_changes(delta):
+    for v in delta.values():
+        if len(v) > 0:
+            return True
+    return False
+
+def _manifest_dict(home, v):
+    d = {}
+    for line in open(j(home, v, 'full', 'manifest.txt')):
+        if line.startswith('#'):
+            continue
+        cols = line.split()
+        d[urllib.unquote(cols[0])] = cols[2]
+    return d
+
+def _dflat_home(directory):
+    if 'dflat-info.txt' in listdir(directory):
+        return abspath(directory)
+    elif directory == '/':
+        return None
+    else:
+        return abspath(dirname(directory))
+
 def main():
     o = optparse.OptionParser()
     values, args = o.parse_args()
     
     cmd = args[0]
-    home = getcwd()
+    home = _dflat_home(getcwd())
+
     if cmd == 'init':
-        init(home)
+        init(getcwd())
+    elif not home:
+        print "not a dflat"
     elif cmd == 'checkout':
         checkout(home)
     elif cmd == 'commit':
         commit(home)
+    elif cmd == 'status':
+        status(home)
+    else: 
+        print "unknown command: %s" % cmd

@@ -91,13 +91,13 @@ class DflatTests(unittest.TestCase):
     def test_commit(self):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
-        self.assertEqual(dflat.current_version('dflat-test'), 'v001')
+        self.assertEqual(dflat._current_version('dflat-test'), 'v001')
         dflat.commit('dflat-test')
-        self.assertEqual(dflat.current_version('dflat-test'), 'dflat-test/v002')
+        self.assertEqual(dflat._current_version('dflat-test'), 'dflat-test/v002')
 
     def test_status(self):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
         open('dflat-test/v002/full/data/d', 'w').write('foo')
         status = dflat.status('dflat-test')
-        self.assertTrue('data/d' in status['add'])
+        self.assertTrue('data/d' in status['added'])
