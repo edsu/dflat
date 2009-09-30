@@ -51,7 +51,7 @@ def update_manifest(version_dir):
     manifest = open(manifest_file, 'w')
     for dirpath, dirnames, filenames in walk(full_dir):
         for filename in filenames:
-            if not dirpath and filename in ('manifest.txt', 'lock.txt'):
+            if dirpath != 'full' and filename in ('manifest.txt', 'lock.txt'):
                 continue
             # make the filename relative to the 'full' directory
             dirpath = re.sub(r'^%s/?' % full_dir, '', dirpath)
