@@ -7,6 +7,7 @@ Installation:
 
 Usage:
 
+  cd /my/object/directory/
   dflat init
   dflat checkout 
   # ... make some changes to v002
