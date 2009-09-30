@@ -9,7 +9,7 @@ import hashlib
 import optparse
 
 def main():
-    o = optparse.OptionParser()
+    o = _option_parser()
     values, args = o.parse_args()
     
     cmd = args[0]
@@ -244,5 +244,9 @@ def _dflat_home(directory):
         return None
     else:
         return abspath(dirname(directory))
+
+def _option_parser():
+    parser = optparse.OptionParser()
+    return parser
 
 
