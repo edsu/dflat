@@ -6,8 +6,9 @@ setup(
     description = "a command line tool for working with dflat digital preservation file systems",
     author = "Ed Summers",
     author_email = "ehs@pobox.com",
-    url = "",
+    url = "http://github.com/edsu/dflat",
     download_url = "",
     packages = find_packages(),
     test_suite = 'test',
+    scripts = ['bin/dflat']
 )

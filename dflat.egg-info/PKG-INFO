@@ -2,7 +2,7 @@ Metadata-Version: 1.0
 Name: dflat
 Version: 0.1
 Summary: a command line tool for working with dflat digital preservation file systems
-Home-page: UNKNOWN
+Home-page: http://github.com/edsu/dflat
 Author: Ed Summers
 Author-email: ehs@pobox.com
 License: UNKNOWN
