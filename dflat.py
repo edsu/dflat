@@ -8,6 +8,26 @@ import shutil
 import hashlib
 import optparse
 
+def main():
+    o = optparse.OptionParser()
+    values, args = o.parse_args()
+    
+    cmd = args[0]
+    home = _dflat_home(getcwd())
+
+    if cmd == 'init':
+        init(getcwd())
+    elif not home:
+        print "not a dflat"
+    elif cmd == 'checkout':
+        checkout(home)
+    elif cmd == 'commit':
+        commit(home)
+    elif cmd == 'status':
+        status(home)
+    else: 
+        print "unknown command: %s" % cmd
+
 # decorator for commands to obtain and release lock
 def lock(f):
     def new_f(home, *args, **opts):
@@ -34,10 +54,10 @@ def init(home):
 
 @lock
 def checkout(home):
-    curr_version = _current_version(home)
-    new_version = _next_version(home)
-    shutil.copytree(j(home, curr_version), j(home, new_version))
-    return new_version
+    v1 = _current_version(home)
+    v2 = _next_version(home)
+    shutil.copytree(j(home, v1), j(home, v2))
+    return v2 
 
 @lock
 def commit(home, msg=None):
@@ -226,22 +246,4 @@ def _dflat_home(directory):
     else:
         return abspath(dirname(directory))
 
-def main():
-    o = optparse.OptionParser()
-    values, args = o.parse_args()
-    
-    cmd = args[0]
-    home = _dflat_home(getcwd())
 
-    if cmd == 'init':
-        init(getcwd())
-    elif not home:
-        print "not a dflat"
-    elif cmd == 'checkout':
-        checkout(home)
-    elif cmd == 'commit':
-        commit(home)
-    elif cmd == 'status':
-        status(home)
-    else: 
-        print "unknown command: %s" % cmd

@@ -21,7 +21,7 @@ class DflatTests(unittest.TestCase):
 
     def tearDown(self):
         if isdir('dflat-test'):
-            shutil.rmtree('dflat-test')
+            pass #shutil.rmtree('dflat-test')
 
     def test_init(self):
         dflat.init('dflat-test')
@@ -93,7 +93,7 @@ class DflatTests(unittest.TestCase):
         dflat.checkout('dflat-test')
         self.assertEqual(dflat._current_version('dflat-test'), 'v001')
         dflat.commit('dflat-test')
-        self.assertEqual(dflat._current_version('dflat-test'), 'dflat-test/v002')
+        self.assertEqual(dflat._current_version('dflat-test'), 'v002')
 
     def test_status(self):
         dflat.init('dflat-test')
