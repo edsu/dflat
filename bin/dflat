@@ -6,6 +6,4 @@ import optparse
 import dflat
 
 if __name__ == '__main__':
-    parser = optparse.OptionParser()
-    args, opts = parser.parse_args()
-    dflat.main(args, opts)
+    dflat.main()
