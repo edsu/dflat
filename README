@@ -1,5 +1,5 @@
 A python client implementation of the dflat [1] and redd [2] specifications
-for for versioning of simple filesystem based digital objects.
+for versioning of simple filesystem based digital objects.
 
 Installation:
 
