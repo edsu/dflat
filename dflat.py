@@ -74,8 +74,12 @@ def init(home):
 def checkout(home):
     v1 = _current_version(home)
     v2 = _next_version(home)
+    if isdir(j(home, v2)):
+        print "%s already checked out" % v2
+        return v2
     shutil.copytree(j(home, v1), j(home, v2))
     logging.info('checked out new version %s' % v2)
+    print "checked out %s" % v2
     return v2 
 
 @log
@@ -117,6 +121,7 @@ def commit(home, msg=None):
     remove(j(home, 'current'))
     _set_current(home, v2)
     logging.info('committed %s %s' % (v2, delta))
+    print "committed %s" % v2
     return v2
 
 @lock
@@ -180,7 +185,7 @@ def _new_version(home):
     return v
 
 def _next_version(home):
-    v = _latest_version(home)
+    v = _current_version(home)
     if v == None:
         return 'v001'
     else:
@@ -256,7 +261,7 @@ def _dflat_home(directory):
     elif directory == '/':
         return None
     else:
-        return abspath(dirname(directory))
+        return _dflat_home(abspath(dirname(directory)))
 
 def _option_parser():
     parser = optparse.OptionParser()
