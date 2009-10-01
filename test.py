@@ -1,3 +1,4 @@
+import re
 import unittest
 from os import mkdir, remove
 from os.path import isdir, isfile, islink, basename, realpath
@@ -100,3 +101,50 @@ class DflatTests(unittest.TestCase):
         open('dflat-test/v002/full/data/d', 'w').write('foo')
         status = dflat.status('dflat-test')
         self.assertTrue('data/d' in status['added'])
+
+    def test_locking(self):
+        # create named function objects to test user-agent func
+        def init():
+            pass
+        def checkout():
+            pass
+        def commit():
+            pass
+        # open the lockfile and spit out, e.g.:
+        #   ["Lock:", "2009-08-10T09:09:09.000000", "dflat-init"]
+        def contents(f):
+            return open(f).read().strip().split()
+        lockfile = 'dflat-test/lock.txt'
+        # lockfile should not already exist
+        self.assertFalse(isfile(lockfile))
+        dflat._get_lock('dflat-test', init)
+        self.assertTrue(isfile(lockfile))
+        (name, date, agent) = contents(lockfile)
+        self.assertTrue(name, 'Lock:')
+        # TODO: adjust this to check w3c-format time
+        self.assertTrue(re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d+', date))
+        # test that agent string for init is a-okay
+        self.assertTrue(agent, 'dflat-init')
+        # make sure lockfile blocks calls to dflat functions
+        self.assertRaises(Exception, dflat.checkout, 'dflat-test')
+        dflat._release_lock('dflat-test')
+        # lockfile should have gone bye-bye
+        self.assertFalse(isfile(lockfile))
+        # test that agent string for checkout is a-okay
+        dflat._get_lock('dflat-test', checkout)
+        self.assertTrue(isfile(lockfile))
+        (name, date, agent) = contents(lockfile)
+        self.assertTrue(agent, 'dflat-checkout')
+        self.assertRaises(Exception, dflat.commit, 'dflat-test')
+        dflat._release_lock('dflat-test')
+        self.assertFalse(isfile(lockfile))        
+        # test that agent string for commit is a-okay
+        dflat._get_lock('dflat-test', commit)
+        self.assertTrue(isfile(lockfile))
+        (name, date, agent) = contents(lockfile)
+        self.assertTrue(agent, 'dflat-commit')
+        self.assertRaises(Exception, dflat.init, 'dflat-test')
+        dflat._release_lock('dflat-test')
+        self.assertFalse(isfile(lockfile))
+
+        

@@ -1,6 +1,7 @@
 from os import chdir, getcwd, listdir, mkdir, rename, renames, \
                symlink, walk, readlink, remove
 from os.path import join as j, abspath, dirname, isdir, isfile, islink
+from datetime import datetime
 
 import re
 import urllib
@@ -32,7 +33,7 @@ def main():
 # decorator for commands to obtain and release lock
 def lock(f):
     def new_f(home, *args, **opts):
-        _get_lock(home)
+        _get_lock(home, f)
         result = f(home, *args, **opts)
         _release_lock(home)
         return result
@@ -166,13 +167,24 @@ def _current_version(home):
 def _anvl(name, value):
     return "%s: %s\n"
 
-def _get_lock(home):
-    # TODO: get lock in home
-    pass
+def _get_lock(home, caller):
+    # TODO: log this operation?
+    lockfile = j(home, 'lock.txt')
+    if isfile(lockfile):
+        raise Exception("already locked")
+    # TODO: change this to use w3c date format
+    d = datetime.now().isoformat()
+    agent = "dflat-%s" % caller.func_name
+    lockfile = open(lockfile, 'w')
+    lockfile.write("Lock: %s %s\n" % (d, agent))
+    lockfile.close()
 
 def _release_lock(home):
-    # TODO: release lock in home
-    pass
+    # TODO: log this operation?
+    lockfile = j(home, 'lock.txt')
+    if not isfile(lockfile):
+        return
+    remove(lockfile)
 
 def _new_version(home):
     v = _next_version(home)
