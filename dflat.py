@@ -1,6 +1,6 @@
 from os import chdir, getcwd, listdir, mkdir, rename, renames, \
                symlink, walk, readlink, remove
-from os.path import join as j, abspath, dirname, isdir
+from os.path import join as j, abspath, dirname, isdir, isfile
 
 import re
 import urllib
@@ -47,6 +47,7 @@ def init(home):
     info.close()
     mkdir(j(home, 'log'))
     version = _new_version(home)
+    _set_current(home, version)
     # move original inhabitants into their new apartment
     for f in contents:
         rename(j(home, f), j(home, version, 'full', 'data', f))
@@ -66,7 +67,7 @@ def commit(home, msg=None):
     if v1 == v2:
         print "nothing to commit"
         return
-
+    _update_manifest(j(home, v2))
     delta = _delta(home, v1, v2)
     if not _has_changes(delta):
         print "no changes"
@@ -96,7 +97,7 @@ def commit(home, msg=None):
         delete.close()
     shutil.rmtree(j(home, v1, 'full'))
     remove(j(home, 'current'))
-    symlink(j(home, v2), j(home, 'current'))
+    _set_current(home, v2)
     return v2
 
 @lock
@@ -157,13 +158,6 @@ def _new_version(home):
     open(j(home, v, 'full', 'manifest.txt'), 'w')
     open(j(home, v, 'full', 'relationships.ttl'), 'w')
     open(j(home, v, 'full', 'splash.txt'), 'w')
-
-    # chdir to make symlink relative, so the dflat can be relocated
-    pwd = getcwd()
-    chdir(home)
-    symlink(v, 'current')
-    chdir(pwd)
-
     return v
 
 def _next_version(home):
@@ -249,4 +243,12 @@ def _option_parser():
     parser = optparse.OptionParser()
     return parser
 
-
+def _set_current(home, v):
+    # chdir to make symlink relative, so the dflat can be relocated
+    # maybe there's a more elegant way to do this?
+    pwd = getcwd()
+    chdir(home)
+    if isfile('current'):
+        remove('current')
+    symlink(v, 'current')
+    chdir(pwd)
