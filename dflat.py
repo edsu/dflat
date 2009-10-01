@@ -6,6 +6,7 @@ import re
 import urllib
 import shutil
 import hashlib
+import logging
 import optparse
 
 def main():
@@ -37,6 +38,15 @@ def lock(f):
         return result
     return new_f
 
+# decorator to log to the dflat home log
+def log(f):
+    def new_f(home, *args, **opts):
+        log_file = j(home, 'log', 'dflat.log')
+        _configure_logger(log_file)
+        result = f(home, *args, **opts)
+        return result
+    return new_f
+
 @lock
 def init(home):
     contents = filter(lambda x: x != 'lock.txt', listdir(home))
@@ -53,13 +63,22 @@ def init(home):
         rename(j(home, f), j(home, version, 'full', 'data', f))
     _update_manifest(j(home, version))
 
+    # can't use decorator since the log directory doesn't exist when 
+    # init is called
+    log_file = j(home, 'log', 'dflat.log')
+    _configure_logger(log_file)
+    logging.info("initialized dflat: %s" % home)
+
+@log
 @lock
 def checkout(home):
     v1 = _current_version(home)
     v2 = _next_version(home)
     shutil.copytree(j(home, v1), j(home, v2))
+    logging.info('checked out new version %s' % v2)
     return v2 
 
+@log
 @lock
 def commit(home, msg=None):
     v1 = _current_version(home)
@@ -80,7 +99,6 @@ def commit(home, msg=None):
     if len(delta['deleted']) > 0:
         mkdir(j(redd_home, 'add'))
         for filename in delta['deleted']:
-            print j(home, v1, 'full', filename)
             renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
     if len(delta['added']) > 0:
         delete = open(j(redd_home, 'delete.txt'), 'w')
@@ -98,6 +116,7 @@ def commit(home, msg=None):
     shutil.rmtree(j(home, v1, 'full'))
     remove(j(home, 'current'))
     _set_current(home, v2)
+    logging.info('committed %s %s' % (v2, delta))
     return v2
 
 @lock
@@ -252,3 +271,9 @@ def _set_current(home, v):
         remove('current')
     symlink(v, 'current')
     chdir(pwd)
+
+def _configure_logger(filename):
+    logging.basicConfig(filename=filename, 
+                        level=logging.INFO, 
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%Y-%m-%dT%H:%M:%S')
