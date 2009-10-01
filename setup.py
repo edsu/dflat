@@ -11,8 +11,7 @@ setup(
     author = "Ed Summers",
     author_email = "ehs@pobox.com",
     url = "http://github.com/edsu/dflat",
-    download_url = "",
-    packages = find_packages(),
+    py_modules = ['dflat'],
     test_suite = 'test',
     scripts = ['bin/dflat']
 )
