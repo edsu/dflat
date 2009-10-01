@@ -1,6 +1,6 @@
 from os import chdir, getcwd, listdir, mkdir, rename, renames, \
                symlink, walk, readlink, remove
-from os.path import join as j, abspath, dirname, isdir, isfile
+from os.path import join as j, abspath, dirname, isdir, isfile, islink
 
 import re
 import urllib
@@ -158,7 +158,10 @@ def _update_manifest(version_dir):
     return manifest_file
 
 def _current_version(home):
-    return readlink(j(home, 'current'))
+    if islink(j(home, 'current')):
+        return readlink(j(home, 'current'))
+    else:
+        return None
 
 def _anvl(name, value):
     return "%s: %s\n"
