@@ -2,6 +2,7 @@ from os import chdir, getcwd, listdir, mkdir, rename, renames, \
                symlink, walk, readlink, remove
 from os.path import join as j, abspath, dirname, isdir, isfile, islink
 from datetime import datetime
+from distutils.dir_util import copy_tree
 
 import re
 import urllib
@@ -16,6 +17,11 @@ def main():
     
     cmd = args[0]
     home = _dflat_home(getcwd())
+    try:
+        version = args[1]
+    except IndexError:
+        # optional arg not passed
+        pass
 
     if cmd == 'init':
         init(getcwd())
@@ -27,6 +33,8 @@ def main():
         commit(home)
     elif cmd == 'status':
         status(home)
+    elif cmd == 'export':
+        export(home, version)
     else: 
         print "unknown command: %s" % cmd
 
@@ -125,6 +133,37 @@ def commit(home, msg=None):
     print "committed %s" % v2
     return v2
 
+@log
+def export(home, version):
+    # validate specified version
+    versions = _versions(home)
+    if version not in versions:
+        raise Exception("version %s not found in %s" % (version, ", ".join(versions)))
+    # copy the latest version
+    current_version = _current_version(home)
+    export = 'export-%s' % version
+    print "would export to %s" % export
+    shutil.copytree(j(home, current_version), j(home, export))
+    # walk back from latest version-1 to specified version, applying changes
+    delta_versions = _versions(home,
+                               reverse=True,
+                               from_version=current_version,
+                               to_version=version)[1:] 
+    # apply adds, deletes, and replaces
+    for dv in delta_versions:
+        # delete deleted files
+        if isfile(j(home, dv, 'redd', 'delete.txt')):
+            deletes = open(j(home, dv, 'redd', 'delete.txt')).read().split()
+            for delete in deletes:
+                print "deleting: %s" % j(home, export, 'full', delete)
+                remove(j(home, export, 'full', delete))
+        # add added files
+        if isdir(j(home, dv, 'redd', 'add')): 
+            for f in listdir(j(home, dv, 'redd', 'add')):
+                print "copying %s to %s" % (j(home, dv, 'redd', 'add', f), j(home, export, 'full', f))
+                copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
+    logging.info('exported version %s' % version)
+
 @lock
 def status(home):
     print "dflat home: %s" % home
@@ -213,9 +252,15 @@ def _latest_version(home):
     else:
         return versions.pop()
 
-def _versions(home):
+def _versions(home, reverse=False, from_version=None, to_version=None):
     versions = filter(lambda x: re.match('^v\d+$', x), listdir(home))
+    if from_version:
+        versions = [x for x in versions if _version_number(x) <= _version_number(from_version)]
+    if to_version:
+        versions = [x for x in versions if _version_number(x) >= _version_number(to_version)]
     versions.sort(lambda a, b: cmp(_version_number(a), _version_number(b)))
+    if reverse:
+        versions.sort(lambda a, b: cmp(_version_number(b), _version_number(a)))
     return versions
 
 def _version_number(version_dir):
