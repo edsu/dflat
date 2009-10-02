@@ -1,1 +1,2 @@
 dflat
+ez_setup

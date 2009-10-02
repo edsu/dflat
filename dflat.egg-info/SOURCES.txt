@@ -1,5 +1,6 @@
 README
 dflat.py
+ez_setup.py
 setup.py
 bin/dflat
 dflat.egg-info/PKG-INFO
