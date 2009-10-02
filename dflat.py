@@ -142,7 +142,6 @@ def export(home, version):
     # copy the latest version
     current_version = _current_version(home)
     export = 'export-%s' % version
-    print "would export to %s" % export
     shutil.copytree(j(home, current_version), j(home, export))
     # walk back from latest version-1 to specified version, applying changes
     delta_versions = _versions(home,
@@ -155,16 +154,13 @@ def export(home, version):
         if isfile(j(home, dv, 'redd', 'delete.txt')):
             deletes = open(j(home, dv, 'redd', 'delete.txt')).read().split()
             for delete in deletes:
-                print "deleting: %s" % j(home, export, 'full', delete)
                 remove(j(home, export, 'full', delete))
         # add added files
         if isdir(j(home, dv, 'redd', 'add')): 
             for f in listdir(j(home, dv, 'redd', 'add')):
-                print "copying %s to %s" % (j(home, dv, 'redd', 'add', f), j(home, export, 'full', f))
                 copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
     logging.info('exported version %s' % version)
 
-@lock
 def status(home):
     print "dflat home: %s" % home
     v1 = _current_version(home)
