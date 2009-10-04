@@ -1,15 +1,16 @@
-from os import chdir, getcwd, listdir, mkdir, rename, renames, \
-               symlink, walk, readlink, remove
-from os.path import join as j, abspath, dirname, exists, isdir, isfile, islink
-from datetime import datetime
-
+import os
 import re
 import time
 import urllib
 import shutil
 import hashlib
 import logging
+import os.path
+import datetime
 import optparse
+
+# short alias for this since we call it a lot
+j = os.path.join
 
 _quiet = False
 
@@ -18,7 +19,7 @@ def main():
     values, args = o.parse_args()
     
     cmd = args[0]
-    home = _dflat_home(getcwd())
+    home = _dflat_home(os.getcwd())
     try:
         version = args[1]
     except IndexError:
@@ -26,7 +27,7 @@ def main():
         pass
 
     if cmd == 'init':
-        init(getcwd())
+        init(os.getcwd())
     elif not home:
         _print("not a dflat")
     elif cmd == 'checkout':
@@ -60,18 +61,18 @@ def log(f):
 
 @lock
 def init(home):
-    contents = filter(lambda x: x != 'lock.txt', listdir(home))
+    contents = filter(lambda x: x != 'lock.txt', os.listdir(home))
     info = open(j(home, 'dflat-info.txt'), 'w')
     info.write(_anvl('This', 'Dflat/0.10'))
     info.write(_anvl('Manifest-scheme', 'Checkm/0.1'))
     info.write(_anvl('Delta-scheme', 'ReDD/0.1'))
     info.close()
-    mkdir(j(home, 'log'))
+    os.mkdir(j(home, 'log'))
     version = _new_version(home)
     _set_current(home, version)
     # move original inhabitants into their new apartment
     for f in contents:
-        rename(j(home, f), j(home, version, 'full', 'data', f))
+        os.rename(j(home, f), j(home, version, 'full', 'data', f))
     _update_manifest(j(home, version))
 
     # can't use decorator since the log directory doesn't exist when 
@@ -85,7 +86,7 @@ def init(home):
 def checkout(home):
     v1 = _current_version(home)
     v2 = _next_version(home)
-    if isdir(j(home, v2)):
+    if os.path.isdir(j(home, v2)):
         _print("%s already checked out" % v2)
         return v2
     _copy_tree(j(home, v1), j(home, v2))
@@ -108,28 +109,28 @@ def commit(home, msg=None):
         return 
 
     redd_home = j(home, v1, 'redd')
-    mkdir(redd_home)
+    os.mkdir(redd_home)
     open(j(redd_home, '0=redd_0.1'), 'w').write('redd 0.1')
 
     if len(delta['deleted']) > 0:
-        mkdir(j(redd_home, 'add'))
+        os.mkdir(j(redd_home, 'add'))
         for filename in delta['deleted']:
-            renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
+            os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
     if len(delta['added']) > 0:
         delete = open(j(redd_home, 'delete.txt'), 'w')
         for filename in delta['added']:
             delete.write("%s\n" % filename)
         delete.close()
     if len(delta['modified']) > 0:
-        if not isdir(j(redd_home, 'add')):
-            mkdir(j(redd_home, 'add'))
+        if not os.path.isdir(j(redd_home, 'add')):
+            os.mkdir(j(redd_home, 'add'))
         delete = open(j(redd_home, 'delete.txt'), 'a')
         for filename in delta['modified']:
             delete.write("%s\n" % filename)
-            renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
+            os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
         delete.close()
     shutil.rmtree(j(home, v1, 'full'))
-    remove(j(home, 'current'))
+    os.remove(j(home, 'current'))
     _set_current(home, v2)
     logging.info('committed %s %s' % (v2, delta))
     _print("committed %s" % v2)
@@ -154,15 +155,15 @@ def export(home, version):
     # apply adds, deletes, and replaces
     for dv in delta_versions:
         # delete deleted files
-        if isfile(j(home, dv, 'redd', 'delete.txt')):
+        if os.path.isfile(j(home, dv, 'redd', 'delete.txt')):
             deletes = open(j(home, dv, 'redd', 'delete.txt')).read().split()
             for delete in deletes:
-                remove(j(home, export, 'full', delete))
+                os.remove(j(home, export, 'full', delete))
 
         # add added files
-        if isdir(j(home, dv, 'redd', 'add')): 
+        if os.path.isdir(j(home, dv, 'redd', 'add')): 
             ignore = []
-            for f in listdir(j(home, dv, 'redd', 'add')):
+            for f in os.listdir(j(home, dv, 'redd', 'add')):
                 _copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
     logging.info('exported version %s' % version)
 
@@ -186,7 +187,7 @@ def _update_manifest(version_dir):
     full_dir = j(version_dir, 'full')
     manifest_file = j(full_dir, 'manifest.txt')
     manifest = open(manifest_file, 'w')
-    for dirpath, dirnames, filenames in walk(full_dir):
+    for dirpath, dirnames, filenames in os.walk(full_dir):
         for filename in filenames:
             if dirpath != 'full' and filename in ('manifest.txt', 'lock.txt'):
                 continue
@@ -199,8 +200,8 @@ def _update_manifest(version_dir):
     return manifest_file
 
 def _current_version(home):
-    if islink(j(home, 'current')):
-        return readlink(j(home, 'current'))
+    if os.path.islink(j(home, 'current')):
+        return os.readlink(j(home, 'current'))
     else:
         return None
 
@@ -210,9 +211,9 @@ def _anvl(name, value):
 def _get_lock(home, caller):
     # TODO: log this operation?
     lockfile = j(home, 'lock.txt')
-    if isfile(lockfile):
+    if os.path.isfile(lockfile):
         raise Exception("already locked")
-    d = _rfc3339(datetime.now())
+    d = _rfc3339(datetime.datetime.now())
     agent = "dflat-%s" % caller.func_name
     lockfile = open(lockfile, 'w')
     lockfile.write("Lock: %s %s\n" % (d, agent))
@@ -221,18 +222,18 @@ def _get_lock(home, caller):
 def _release_lock(home):
     # TODO: log this operation?
     lockfile = j(home, 'lock.txt')
-    if not isfile(lockfile):
+    if not os.path.isfile(lockfile):
         return
-    remove(lockfile)
+    os.remove(lockfile)
 
 def _new_version(home):
     v = _next_version(home)
-    mkdir(j(home, v))
-    mkdir(j(home, v, 'full'))
-    mkdir(j(home, v, 'full', 'admin'))
-    mkdir(j(home, v, 'full', 'annotation'))
-    mkdir(j(home, v, 'full', 'data'))
-    mkdir(j(home, v, 'full', 'enrichment'))
+    os.mkdir(j(home, v))
+    os.mkdir(j(home, v, 'full'))
+    os.mkdir(j(home, v, 'full', 'admin'))
+    os.mkdir(j(home, v, 'full', 'annotation'))
+    os.mkdir(j(home, v, 'full', 'data'))
+    os.mkdir(j(home, v, 'full', 'enrichment'))
     open(j(home, v, 'full', 'manifest.txt'), 'w')
     open(j(home, v, 'full', 'relationships.ttl'), 'w')
     open(j(home, v, 'full', 'splash.txt'), 'w')
@@ -253,7 +254,7 @@ def _latest_version(home):
         return versions.pop()
 
 def _versions(home, reverse=False, from_version=None, to_version=None):
-    versions = filter(lambda x: re.match('^v\d+$', x), listdir(home))
+    versions = filter(lambda x: re.match('^v\d+$', x), os.listdir(home))
     if from_version:
         versions = [x for x in versions if _version_number(x) <= _version_number(from_version)]
     if to_version:
@@ -316,12 +317,12 @@ def _manifest_dict(home, v):
     return d
 
 def _dflat_home(directory):
-    if 'dflat-info.txt' in listdir(directory):
-        return abspath(directory)
+    if 'dflat-info.txt' in os.listdir(directory):
+        return os.path.abspath(directory)
     elif directory == '/':
         return None
     else:
-        return _dflat_home(abspath(dirname(directory)))
+        return _dflat_home(os.path.abspath(os.path.dirname(directory)))
 
 def _option_parser():
     parser = optparse.OptionParser()
@@ -330,12 +331,12 @@ def _option_parser():
 def _set_current(home, v):
     # chdir to make symlink relative, so the dflat can be relocated
     # maybe there's a more elegant way to do this?
-    pwd = getcwd()
-    chdir(home)
-    if isfile('current'):
-        remove('current')
-    symlink(v, 'current')
-    chdir(pwd)
+    pwd = os.getcwd()
+    os.chdir(home)
+    if os.path.isfile('current'):
+        os.remove('current')
+    os.symlink(v, 'current')
+    os.chdir(pwd)
 
 def _configure_logger(filename):
     tz = _timezone()
@@ -363,14 +364,14 @@ def _print(s):
 def _copy_tree(src_dir, dest_dir):
     # shutil.copytree doesn't like copying directories that already exist 
     # so here's a new one
-    if not exists(dest_dir):
-        mkdir(dest_dir)
-    for file in listdir(src_dir):
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+    for file in os.listdir(src_dir):
         src = j(src_dir, file)
         dest = j(dest_dir, file)
-        if isdir(src):
-            if not exists(dest):
-                mkdir(dest)
+        if os.path.isdir(src):
+            if not os.path.exists(dest):
+                os.mkdir(dest)
                 shutil.copystat(src, dest) # preserve permissions manually
             _copy_tree(src, dest)
         else:
