@@ -5,6 +5,7 @@ from datetime import datetime
 from distutils.dir_util import copy_tree
 
 import re
+import time
 import urllib
 import shutil
 import hashlib
@@ -133,6 +134,7 @@ def commit(home, msg=None):
     print "committed %s" % v2
     return v2
 
+# TODO: add lock decorator?
 @log
 def export(home, version):
     # validate specified version
@@ -207,8 +209,7 @@ def _get_lock(home, caller):
     lockfile = j(home, 'lock.txt')
     if isfile(lockfile):
         raise Exception("already locked")
-    # TODO: change this to use w3c date format
-    d = datetime.now().isoformat()
+    d = _rfc3339(datetime.now())
     agent = "dflat-%s" % caller.func_name
     lockfile = open(lockfile, 'w')
     lockfile.write("Lock: %s %s\n" % (d, agent))
@@ -334,7 +335,20 @@ def _set_current(home, v):
     chdir(pwd)
 
 def _configure_logger(filename):
+    tz = _timezone()
     logging.basicConfig(filename=filename, 
                         level=logging.INFO, 
                         format='%(asctime)s %(levelname)-8s %(message)s',
-                        datefmt='%Y-%m-%dT%H:%M:%S')
+                        datefmt='%Y-%m-%dT%H:%M:%S'+tz)
+
+def _timezone():
+    if time.daylight:
+        utcoffset = -time.altzone
+    else:
+        utcoffset = -time.timezone
+    hours = int(float(utcoffset)) // 3600
+    minutes = abs(utcoffset) % 3600 // 60
+    return '%+03d:%02d' % (hours, minutes)
+
+def _rfc3339(dt):
+    return dt.strftime('%Y-%m-%dT%H:%M:%S') + _timezone()
