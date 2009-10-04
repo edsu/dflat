@@ -1,8 +1,7 @@
 from os import chdir, getcwd, listdir, mkdir, rename, renames, \
                symlink, walk, readlink, remove
-from os.path import join as j, abspath, dirname, isdir, isfile, islink
+from os.path import join as j, abspath, dirname, exists, isdir, isfile, islink
 from datetime import datetime
-from distutils.dir_util import copy_tree
 
 import re
 import time
@@ -11,6 +10,8 @@ import shutil
 import hashlib
 import logging
 import optparse
+
+_quiet = False
 
 def main():
     o = _option_parser()
@@ -27,7 +28,7 @@ def main():
     if cmd == 'init':
         init(getcwd())
     elif not home:
-        print "not a dflat"
+        _print("not a dflat")
     elif cmd == 'checkout':
         checkout(home)
     elif cmd == 'commit':
@@ -37,7 +38,7 @@ def main():
     elif cmd == 'export':
         export(home, version)
     else: 
-        print "unknown command: %s" % cmd
+        _print("unknown command: %s" % cmd)
 
 # decorator for commands to obtain and release lock
 def lock(f):
@@ -85,11 +86,11 @@ def checkout(home):
     v1 = _current_version(home)
     v2 = _next_version(home)
     if isdir(j(home, v2)):
-        print "%s already checked out" % v2
+        _print("%s already checked out" % v2)
         return v2
-    shutil.copytree(j(home, v1), j(home, v2))
+    _copy_tree(j(home, v1), j(home, v2))
     logging.info('checked out new version %s' % v2)
-    print "checked out %s" % v2
+    _print("checked out %s" % v2)
     return v2 
 
 @log
@@ -98,12 +99,12 @@ def commit(home, msg=None):
     v1 = _current_version(home)
     v2 = _latest_version(home)
     if v1 == v2:
-        print "nothing to commit"
+        _print("nothing to commit")
         return
     _update_manifest(j(home, v2))
     delta = _delta(home, v1, v2)
     if not _has_changes(delta):
-        print "no changes"
+        _print("no changes")
         return 
 
     redd_home = j(home, v1, 'redd')
@@ -131,7 +132,7 @@ def commit(home, msg=None):
     remove(j(home, 'current'))
     _set_current(home, v2)
     logging.info('committed %s %s' % (v2, delta))
-    print "committed %s" % v2
+    _print("committed %s" % v2)
     return v2
 
 # TODO: add lock decorator?
@@ -144,7 +145,7 @@ def export(home, version):
     # copy the latest version
     current_version = _current_version(home)
     export = 'export-%s' % version
-    shutil.copytree(j(home, current_version), j(home, export))
+    _copy_tree(j(home, current_version), j(home, export))
     # walk back from latest version-1 to specified version, applying changes
     delta_versions = _versions(home,
                                reverse=True,
@@ -157,19 +158,21 @@ def export(home, version):
             deletes = open(j(home, dv, 'redd', 'delete.txt')).read().split()
             for delete in deletes:
                 remove(j(home, export, 'full', delete))
+
         # add added files
         if isdir(j(home, dv, 'redd', 'add')): 
+            ignore = []
             for f in listdir(j(home, dv, 'redd', 'add')):
-                copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
+                _copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
     logging.info('exported version %s' % version)
 
 def status(home):
-    print "dflat home: %s" % home
+    _print("dflat home: %s" % home)
     v1 = _current_version(home)
-    print "current version: %s" % v1
+    _print("current version: %s" % v1)
     v2 = _latest_version(home)
     if v1 == v2:
-        print "no changes"
+        _print("no changes")
         delta = None
     else:
         _update_manifest(j(home, v2))
@@ -293,9 +296,9 @@ def _print_delta_files(delta, dtype):
     files = delta[dtype]
     files.sort()
     if len(files) > 0:
-        print "%s:" % dtype
+        _print("%s:" % dtype)
         for filename in files:
-            print "  %s" % urllib.unquote(filename)
+            _print("  %s" % urllib.unquote(filename))
 
 def _has_changes(delta):
     for v in delta.values():
@@ -352,3 +355,24 @@ def _timezone():
 
 def _rfc3339(dt):
     return dt.strftime('%Y-%m-%dT%H:%M:%S') + _timezone()
+
+def _print(s):
+    if not _quiet:
+        print s
+
+def _copy_tree(src_dir, dest_dir):
+    # shutil.copytree doesn't like copying directories that already exist 
+    # so here's a new one
+    if not exists(dest_dir):
+        mkdir(dest_dir)
+    for file in listdir(src_dir):
+        src = j(src_dir, file)
+        dest = j(dest_dir, file)
+        if isdir(src):
+            if not exists(dest):
+                mkdir(dest)
+                shutil.copystat(src, dest) # preserve permissions manually
+            _copy_tree(src, dest)
+        else:
+            shutil.copy2(src, dest) # copy2 preserves permissions
+

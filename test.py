@@ -6,6 +6,8 @@ from shutil import rmtree, copytree
 
 import dflat
 
+dflat._quiet = True
+
 class DflatTests(unittest.TestCase):
 
     def setUp(self):
