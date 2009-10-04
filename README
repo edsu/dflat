@@ -13,6 +13,7 @@ Usage:
   # ... make some changes to v002
   dflat status
   dflat commit
+  dflat export v001  
 
 [1] http://www.cdlib.org/inside/diglib/dflat/dflatspec.pdf
 [2] http://www.cdlib.org/inside/diglib/redd/reddspec.html

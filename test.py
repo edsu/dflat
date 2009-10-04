@@ -15,7 +15,7 @@ class DflatTests(unittest.TestCase):
 
     def tearDown(self):
         if isdir('dflat-test'):
-            pass #rmtree('dflat-test')
+            rmtree('dflat-test')
 
     def test_init(self):
         dflat.init('dflat-test')
@@ -104,12 +104,9 @@ class DflatTests(unittest.TestCase):
 
     def test_locking(self):
         # create named function objects to test user-agent func
-        def init():
-            pass
-        def checkout():
-            pass
-        def commit():
-            pass
+        def init(): pass
+        def checkout(): pass
+        def commit(): pass
         # open the lockfile and spit out, e.g.:
         #   ["Lock:", "2009-08-10T09:09:09.000000", "dflat-init"]
         def contents(f):
@@ -147,4 +144,55 @@ class DflatTests(unittest.TestCase):
         dflat._release_lock('dflat-test')
         self.assertFalse(isfile(lockfile))
 
+    def test_export(self):
+        home = 'dflat-test'
+        dflat.init(home)
+        # create v002
+        dflat.checkout(home)
+        open('dflat-test/v002/full/data/reddspec.html', 'a').write('mod')
+        # commit v002
+        dflat.commit(home)
+        # create v003
+        dflat.checkout(home)
+        open('dflat-test/v003/full/data/newfile.txt', 'w').write('newfile')
+        # commit v003
+        dflat.commit(home)
+        # create v004
+        dflat.checkout(home)
+        remove('dflat-test/v004/full/data/dflatspec.pdf')
+        # commit v004
+        dflat.commit(home)
+        # create v005
+        dflat.checkout(home)
+        # commit v005
+        dflat.commit(home)
+        # export an invalid version
+        self.assertRaises(Exception, dflat.export, home, 'v000') 
+        # export v004 and check it
+        dflat.export(home, "v004")
+        self.assertTrue(isdir('dflat-test/export-v004'))
+        self.assertFalse(isfile('dflat-test/export-v004/full/data/dflatspec.pdf'))
+        self.assertEqual(open('dflat-test/export-v004/full/data/reddspec.html').read(), 
+                         open('dflat-test/v005/full/data/reddspec.html').read())
+        # export v003 and check it
+        dflat.export(home, "v003")
+        self.assertTrue(isdir('dflat-test/export-v003'))
+        self.assertTrue(isfile('dflat-test/export-v003/full/data/newfile.txt'))
+        self.assertTrue(isfile('dflat-test/export-v003/full/data/dflatspec.pdf'))
+        self.assertEqual(open('dflat-test/export-v003/full/data/reddspec.html').read(), 
+                         open('dflat-test/v005/full/data/reddspec.html').read())
+        # export v002 and check it
+        dflat.export(home, "v002")
+        self.assertTrue(isdir('dflat-test/export-v002'))
+        self.assertFalse(isfile('dflat-test/export-v002/full/data/newfile.txt'))
+        self.assertTrue(isfile('dflat-test/export-v002/full/data/dflatspec.pdf'))
+        self.assertEqual(open('dflat-test/export-v002/full/data/reddspec.html').read(), 
+                         open('dflat-test/v005/full/data/reddspec.html').read())
+        # export v001 and check it
+        dflat.export(home, "v001")
+        self.assertTrue(isdir('dflat-test/export-v001'))
+        self.assertFalse(isfile('dflat-test/export-v001/full/data/newfile.txt'))
+        self.assertTrue(isfile('dflat-test/export-v001/full/data/dflatspec.pdf'))
+        self.assertNotEqual(open('dflat-test/export-v001/full/data/reddspec.html').read(), 
+                         open('dflat-test/v005/full/data/reddspec.html').read())
         
