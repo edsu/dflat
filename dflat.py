@@ -376,5 +376,3 @@ def _copy_tree(src_dir, dest_dir):
             _copy_tree(src, dest)
         else:
             shutil.copy2(src, dest) # copy2 preserves permissions
-
->>>>>>> da3cc1c17763524338a1c1f8410e92702d872f62:dflat.py
