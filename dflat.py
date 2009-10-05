@@ -213,11 +213,7 @@ def _get_lock(home, caller):
     lockfile = j(home, 'lock.txt')
     if os.path.isfile(lockfile):
         raise Exception("already locked")
-<<<<<<< HEAD:dflat.py
-    d = _rfc3339(datetime.now())
-=======
     d = _rfc3339(datetime.datetime.now())
->>>>>>> da3cc1c17763524338a1c1f8410e92702d872f62:dflat.py
     agent = "dflat-%s" % caller.func_name
     lockfile = open(lockfile, 'w')
     lockfile.write("Lock: %s %s\n" % (d, agent))
@@ -360,8 +356,6 @@ def _timezone():
 
 def _rfc3339(dt):
     return dt.strftime('%Y-%m-%dT%H:%M:%S') + _timezone()
-<<<<<<< HEAD:dflat.py
-=======
 
 def _print(s):
     if not _quiet:
