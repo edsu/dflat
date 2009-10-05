@@ -9,6 +9,7 @@ import urllib
 import shutil
 import hashlib
 import logging
+import namaste
 import os.path
 import datetime
 import optparse
@@ -67,7 +68,7 @@ def log(f):
 def init(home):
     contents = filter(lambda x: x != 'lock.txt', os.listdir(home))
     info = open(j(home, 'dflat-info.txt'), 'w')
-    _namaste_type(home, 'dflat_%s' % dflat_version)
+    namaste.dirtype(home, 'dflat_%s' % dflat_version)
     info.write(_anvl('Object-scheme', 'Dflat/%s' % dflat_version))
     info.write(_anvl('Manifest-scheme', 'Checkm/0.1'))
     info.write(_anvl('Full-scheme', 'Dnatural/0.12'))
@@ -118,7 +119,7 @@ def commit(home, msg=None):
 
     redd_home = j(home, v1, 'redd')
     os.mkdir(redd_home)
-    _namaste_type(redd_home, 'redd_%s' % redd_version)
+    namaste.dirtype(redd_home, 'redd_%s' % redd_version)
 
     if len(delta['deleted']) > 0:
         os.mkdir(j(redd_home, 'add'))
@@ -236,7 +237,7 @@ def _new_version(home):
     v = _next_version(home)
     os.mkdir(j(home, v))
     os.mkdir(j(home, v, 'full'))
-    _namaste_type(j(home, v, 'full'), 'dnatural_%s' % dnatural_version)
+    namaste.dirtype(j(home, v, 'full'), 'dnatural_%s' % dnatural_version)
     os.mkdir(j(home, v, 'full', 'admin'))
     os.mkdir(j(home, v, 'full', 'annotation'))
     os.mkdir(j(home, v, 'full', 'data'))
@@ -381,5 +382,3 @@ def _copy_tree(src_dir, dest_dir):
         else:
             shutil.copy2(src, dest) # copy2 preserves permissions
 
-def _namaste_type(home, tvalue):
-    open(j(home, '0=%s' % tvalue), 'w').write(tvalue)
