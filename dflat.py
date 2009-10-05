@@ -375,4 +375,3 @@ def _copy_tree(src_dir, dest_dir):
             _copy_tree(src, dest)
         else:
             shutil.copy2(src, dest) # copy2 preserves permissions
-
