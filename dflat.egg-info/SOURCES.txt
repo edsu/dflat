@@ -6,4 +6,5 @@ bin/dflat
 dflat.egg-info/PKG-INFO
 dflat.egg-info/SOURCES.txt
 dflat.egg-info/dependency_links.txt
+dflat.egg-info/requires.txt
 dflat.egg-info/top_level.txt

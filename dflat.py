@@ -68,7 +68,7 @@ def log(f):
 def init(home):
     contents = filter(lambda x: x != 'lock.txt', os.listdir(home))
     info = open(j(home, 'dflat-info.txt'), 'w')
-    namaste.dirtype(home, 'dflat_%s' % dflat_version)
+    namaste.dirtype(home, 'dflat_%s' % dflat_version, verbose=False)
     info.write(_anvl('Object-scheme', 'Dflat/%s' % dflat_version))
     info.write(_anvl('Manifest-scheme', 'Checkm/0.1'))
     info.write(_anvl('Full-scheme', 'Dnatural/0.12'))
@@ -117,20 +117,25 @@ def commit(home, msg=None):
         _print("no changes")
         return 
 
-    redd_home = j(home, v1, 'redd')
+    redd_home = j(home, v1, 'delta')
     os.mkdir(redd_home)
-    namaste.dirtype(redd_home, 'redd_%s' % redd_version)
+    namaste.dirtype(redd_home, 'redd_%s' % redd_version, verbose=False)
 
+    changed = False
     if len(delta['deleted']) > 0:
+        changed = True
         os.mkdir(j(redd_home, 'add'))
         for filename in delta['deleted']:
             os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
     if len(delta['added']) > 0:
+        changed = True
         delete = open(j(redd_home, 'delete.txt'), 'w')
         for filename in delta['added']:
             delete.write("%s\n" % filename)
         delete.close()
+
     if len(delta['modified']) > 0:
+        changed = True
         if not os.path.isdir(j(redd_home, 'add')):
             os.mkdir(j(redd_home, 'add'))
         delete = open(j(redd_home, 'delete.txt'), 'a')
@@ -138,11 +143,19 @@ def commit(home, msg=None):
             delete.write("%s\n" % filename)
             os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
         delete.close()
+
+
     shutil.rmtree(j(home, v1, 'full'))
     _set_current(home, v2)
+
+    if changed:
+        _update_manifest(j(home, v1), is_delta=True)
+
     logging.info('committed %s %s' % (v2, delta))
     _print("committed %s" % v2)
-    return v2
+
+
+    return delta
 
 # TODO: add lock decorator?
 @log
@@ -163,15 +176,15 @@ def export(home, version):
     # apply adds, deletes, and replaces
     for dv in delta_versions:
         # delete deleted files
-        if os.path.isfile(j(home, dv, 'redd', 'delete.txt')):
-            deletes = open(j(home, dv, 'redd', 'delete.txt')).read().split()
+        if os.path.isfile(j(home, dv, 'delta', 'delete.txt')):
+            deletes = open(j(home, dv, 'delta', 'delete.txt')).read().split()
             for delete in deletes:
                 os.remove(j(home, export, 'full', delete))
 
         # add added files
-        if os.path.isdir(j(home, dv, 'redd', 'add')): 
-            for f in os.listdir(j(home, dv, 'redd', 'add')):
-                _copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
+        if os.path.isdir(j(home, dv, 'delta', 'add')): 
+            for f in os.listdir(j(home, dv, 'delta', 'add')):
+                _copy_tree(j(home, dv, 'delta', 'add', f), j(home, export, 'full', f)) 
     logging.info('exported version %s' % version)
 
 def status(home):
@@ -190,17 +203,22 @@ def status(home):
         _print_delta_files(delta, 'deleted')
     return delta
 
-def _update_manifest(version_dir): 
-    full_dir = j(version_dir, 'full')
-    manifest_file = j(full_dir, 'manifest.txt')
+def _update_manifest(version_dir, is_delta=False): 
+    if is_delta:
+        container_dir = j(version_dir, 'delta')
+        manifest_file = j(version_dir, 'd-manifest.txt')
+    else:
+        container_dir = j(version_dir, 'full')
+        manifest_file = j(version_dir, 'manifest.txt')
+    
     manifest = open(manifest_file, 'w')
-    for dirpath, dirnames, filenames in os.walk(full_dir):
+    for dirpath, dirnames, filenames in os.walk(container_dir):
         for filename in filenames:
             if dirpath != 'full' and filename in ('manifest.txt', 'lock.txt'):
                 continue
-            # make the filename relative to the 'full' directory
-            dirpath = re.sub(r'^%s/?' % full_dir, '', dirpath)
-            md5 = _md5(j(full_dir, dirpath, filename))
+            # make the filename relative to the container directory
+            dirpath = re.sub(r'^%s/?' % container_dir, '', dirpath)
+            md5 = _md5(j(container_dir, dirpath, filename))
             filename = urllib.quote(j(dirpath, filename))
             manifest.write("%s md5 %s\n" % (filename, md5))
     manifest.close()
@@ -237,14 +255,15 @@ def _new_version(home):
     v = _next_version(home)
     os.mkdir(j(home, v))
     os.mkdir(j(home, v, 'full'))
-    namaste.dirtype(j(home, v, 'full'), 'dnatural_%s' % dnatural_version)
+    namaste.dirtype(j(home, v, 'full'), 'dnatural_%s' % dnatural_version,
+                    verbose=False)
     os.mkdir(j(home, v, 'full', 'admin'))
     os.mkdir(j(home, v, 'full', 'annotation'))
     os.mkdir(j(home, v, 'full', 'data'))
     os.mkdir(j(home, v, 'full', 'enrichment'))
     os.mkdir(j(home, v, 'full', 'log'))
     os.mkdir(j(home, v, 'full', 'metadata'))
-    open(j(home, v, 'full', 'manifest.txt'), 'w')
+    open(j(home, v, 'manifest.txt'), 'w')
     open(j(home, v, 'full', 'relationships.ttl'), 'w')
     open(j(home, v, 'full', 'splash.txt'), 'w')
     return v
@@ -319,7 +338,7 @@ def _has_changes(delta):
 
 def _manifest_dict(home, v):
     d = {}
-    for line in open(j(home, v, 'full', 'manifest.txt')):
+    for line in open(j(home, v, 'manifest.txt')):
         if line.startswith('#'):
             continue
         cols = line.split()

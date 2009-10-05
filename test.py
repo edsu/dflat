@@ -19,6 +19,12 @@ class DflatTests(unittest.TestCase):
         if isdir('dflat-test'):
             rmtree('dflat-test')
 
+    def assertFileEqual(self, f1, f2):
+        if open(f1).read() == open(f2).read():
+            pass
+        else:
+            self.fail("%s not the same as %s" % (f1, f2))
+
     def test_init(self):
         dflat.init('dflat-test')
         self.assertTrue(isdir('dflat-test'))
@@ -30,7 +36,7 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isdir('dflat-test/v001/full/annotation'))
         self.assertTrue(isdir('dflat-test/v001/full/data'))
         self.assertTrue(isdir('dflat-test/v001/full/enrichment'))
-        self.assertTrue(isfile('dflat-test/v001/full/manifest.txt'))
+        self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
         self.assertTrue(isfile('dflat-test/v001/full/relationships.ttl'))
         self.assertTrue(isfile('dflat-test/v001/full/splash.txt'))
         self.assertTrue(isfile('dflat-test/v001/full/data/canspec.pdf'))
@@ -42,7 +48,7 @@ class DflatTests(unittest.TestCase):
 
         # check manifest, ordering can be different with different pythons
         manifest = {}
-        for line in open('dflat-test/v001/full/manifest.txt'):
+        for line in open('dflat-test/v001/manifest.txt'):
             cols = line.split()
             manifest[cols[0]] = cols[2]
         manifest_files = manifest.keys()
@@ -75,7 +81,7 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isdir('dflat-test/v002/full/annotation'))
         self.assertTrue(isdir('dflat-test/v002/full/data'))
         self.assertTrue(isdir('dflat-test/v002/full/enrichment'))
-        self.assertTrue(isfile('dflat-test/v002/full/manifest.txt'))
+        self.assertTrue(isfile('dflat-test/v002/manifest.txt'))
         self.assertTrue(isfile('dflat-test/v002/full/relationships.ttl'))
         self.assertTrue(isfile('dflat-test/v002/full/splash.txt'))
         self.assertTrue(isfile('dflat-test/v002/full/data/canspec.pdf'))
@@ -93,7 +99,12 @@ class DflatTests(unittest.TestCase):
         open('dflat-test/v002/full/data/newfile.txt', 'w').write('newfile')
         remove('dflat-test/v002/full/data/dflatspec.pdf')
         delta = dflat.commit('dflat-test')
-        # TODO: look in v001/redd for expected things
+        self.assertTrue('data/reddspec.html' in delta['modified'])
+        self.assertTrue('data/newfile.txt' in delta['added'])
+        self.assertTrue('data/dflatspec.pdf' in delta['deleted'])
+        self.assertTrue(isdir('dflat-test/v001/delta'))
+        self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
+        self.assertTrue(isfile('dflat-test/v001/d-manifest.txt'))
         self.assertEqual(dflat._current_version('dflat-test'), 'v002')
 
     def test_status(self):
@@ -187,8 +198,8 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isdir('dflat-test/export-v002'))
         self.assertFalse(isfile('dflat-test/export-v002/full/data/newfile.txt'))
         self.assertTrue(isfile('dflat-test/export-v002/full/data/dflatspec.pdf'))
-        self.assertEqual(open('dflat-test/export-v002/full/data/reddspec.html').read(), 
-                         open('dflat-test/v005/full/data/reddspec.html').read())
+        self.assertFileEqual('dflat-test/export-v002/full/data/reddspec.html',
+                             'dflat-test/v005/full/data/reddspec.html')
         # export v001 and check it
         dflat.export(home, "v001")
         self.assertTrue(isdir('dflat-test/export-v001'))
