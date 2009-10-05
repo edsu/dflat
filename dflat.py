@@ -265,7 +265,6 @@ def _new_version(home):
     os.mkdir(j(home, v, 'full', 'metadata'))
     open(j(home, v, 'manifest.txt'), 'w')
     open(j(home, v, 'full', 'relationships.ttl'), 'w')
-    open(j(home, v, 'full', 'splash.txt'), 'w')
     return v
 
 def _next_version(home):
