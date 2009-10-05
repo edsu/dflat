@@ -162,7 +162,6 @@ def export(home, version):
 
         # add added files
         if os.path.isdir(j(home, dv, 'redd', 'add')): 
-            ignore = []
             for f in os.listdir(j(home, dv, 'redd', 'add')):
                 _copy_tree(j(home, dv, 'redd', 'add', f), j(home, export, 'full', f)) 
     logging.info('exported version %s' % version)

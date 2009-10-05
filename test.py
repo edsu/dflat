@@ -60,7 +60,7 @@ class DflatTests(unittest.TestCase):
         self.assertEqual(manifest['data/canspec.pdf'], '1b1b4a9761cd8bc057f807004e7b2f78')
         self.assertEqual(manifest['data/checkmspec.html'], '138694ea9958ec66d7cc6e56194f8423')
         self.assertEqual(manifest['data/clopspec.pdf'], '83b15ce21a9efc504dc421280f6073d8')
-        self.assertEqual(manifest['data/dflatspec.pdf'], '82d0542f2dce12da9ab105fb75805da4')
+        self.assertEqual(manifest['data/dflatspec.pdf'], 'f79ee8a6b3c79f25308023858d8ce085')
         self.assertEqual(manifest['data/namastespec.html'], '7cdea11aa319f3a227a108d871285e84')
         self.assertEqual(manifest['data/reddspec.html'], 'd3fcc19c54d424d53bcd5621fca34183')
 
