@@ -1,3 +1,7 @@
+dflat_version = '0.16'
+dnatural_version = '0.12'
+redd_version = '0.1'
+
 import os
 import re
 import time
@@ -63,9 +67,13 @@ def log(f):
 def init(home):
     contents = filter(lambda x: x != 'lock.txt', os.listdir(home))
     info = open(j(home, 'dflat-info.txt'), 'w')
-    info.write(_anvl('This', 'Dflat/0.10'))
+    _namaste_type(home, 'dflat_%s' % dflat_version)
+    info.write(_anvl('Object-scheme', 'Dflat/%s' % dflat_version))
     info.write(_anvl('Manifest-scheme', 'Checkm/0.1'))
+    info.write(_anvl('Full-scheme', 'Dnatural/0.12'))
     info.write(_anvl('Delta-scheme', 'ReDD/0.1'))
+    info.write(_anvl('Current-scheme', 'file'))
+    info.write(_anvl('Class-scheme', 'CLOP/0.3'))
     info.close()
     os.mkdir(j(home, 'log'))
     version = _new_version(home)
@@ -110,7 +118,7 @@ def commit(home, msg=None):
 
     redd_home = j(home, v1, 'redd')
     os.mkdir(redd_home)
-    open(j(redd_home, '0=redd_0.1'), 'w').write('redd 0.1')
+    _namaste_type(redd_home, 'redd_%s' % redd_version)
 
     if len(delta['deleted']) > 0:
         os.mkdir(j(redd_home, 'add'))
@@ -130,7 +138,6 @@ def commit(home, msg=None):
             os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
         delete.close()
     shutil.rmtree(j(home, v1, 'full'))
-    os.remove(j(home, 'current'))
     _set_current(home, v2)
     logging.info('committed %s %s' % (v2, delta))
     _print("committed %s" % v2)
@@ -199,13 +206,13 @@ def _update_manifest(version_dir):
     return manifest_file
 
 def _current_version(home):
-    if os.path.islink(j(home, 'current')):
-        return os.readlink(j(home, 'current'))
-    else:
-        return None
+    current_file = j(home, 'current.txt')
+    if os.path.isfile(current_file):
+        return open(current_file, 'r').read()
+    return None
 
 def _anvl(name, value):
-    return "%s: %s\n"
+    return "%s: %s\n" % (name, value)
 
 def _get_lock(home, caller):
     # TODO: log this operation?
@@ -229,10 +236,13 @@ def _new_version(home):
     v = _next_version(home)
     os.mkdir(j(home, v))
     os.mkdir(j(home, v, 'full'))
+    _namaste_type(j(home, v, 'full'), 'dnatural_%s' % dnatural_version)
     os.mkdir(j(home, v, 'full', 'admin'))
     os.mkdir(j(home, v, 'full', 'annotation'))
     os.mkdir(j(home, v, 'full', 'data'))
     os.mkdir(j(home, v, 'full', 'enrichment'))
+    os.mkdir(j(home, v, 'full', 'log'))
+    os.mkdir(j(home, v, 'full', 'metadata'))
     open(j(home, v, 'full', 'manifest.txt'), 'w')
     open(j(home, v, 'full', 'relationships.ttl'), 'w')
     open(j(home, v, 'full', 'splash.txt'), 'w')
@@ -330,12 +340,7 @@ def _option_parser():
 def _set_current(home, v):
     # chdir to make symlink relative, so the dflat can be relocated
     # maybe there's a more elegant way to do this?
-    pwd = os.getcwd()
-    os.chdir(home)
-    if os.path.isfile('current'):
-        os.remove('current')
-    os.symlink(v, 'current')
-    os.chdir(pwd)
+    open(j(home, 'current.txt'), 'w').write(v)
 
 def _configure_logger(filename):
     tz = _timezone()
@@ -375,3 +380,6 @@ def _copy_tree(src_dir, dest_dir):
             _copy_tree(src, dest)
         else:
             shutil.copy2(src, dest) # copy2 preserves permissions
+
+def _namaste_type(home, tvalue):
+    open(j(home, '0=%s' % tvalue), 'w').write(tvalue)
