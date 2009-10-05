@@ -192,6 +192,7 @@ def status(home):
     v1 = _current_version(home)
     _print("current version: %s" % v1)
     v2 = _latest_version(home)
+    _print("working version: %s" % v2)
     if v1 == v2:
         _print("no changes")
         delta = None
