@@ -140,7 +140,7 @@ def commit(home, msg=None):
             os.mkdir(j(redd_home, 'add'))
         delete = open(j(redd_home, 'delete.txt'), 'a')
         for filename in delta['modified']:
-            delete.write("%s\n" % filename)
+            delete.write("%s\n" % urllib.quote(filename))
             os.renames(j(home, v1, 'full', filename), j(redd_home, 'add', filename))
         delete.close()
 
