@@ -131,7 +131,7 @@ def commit(home, msg=None):
         changed = True
         delete = open(j(redd_home, 'delete.txt'), 'w')
         for filename in delta['added']:
-            delete.write("%s\n" % filename)
+            delete.write("%s\n" % urllib.quote(filename))
         delete.close()
 
     if len(delta['modified']) > 0:
@@ -179,7 +179,7 @@ def export(home, version):
         if os.path.isfile(j(home, dv, 'delta', 'delete.txt')):
             deletes = open(j(home, dv, 'delta', 'delete.txt')).read().split()
             for delete in deletes:
-                os.remove(j(home, export, 'full', delete))
+                os.remove(j(home, export, 'full', urllib.unquote(delete)))
 
         # add added files
         if os.path.isdir(j(home, dv, 'delta', 'add')): 

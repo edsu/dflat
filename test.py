@@ -92,11 +92,11 @@ class DflatTests(unittest.TestCase):
         dflat.checkout('dflat-test')
         self.assertEqual(dflat._current_version('dflat-test'), 'v001')
         open('dflat-test/v002/full/data/reddspec.html', 'a').write('mod')
-        open('dflat-test/v002/full/data/newfile.txt', 'w').write('newfile')
+        open('dflat-test/v002/full/data/new file.txt', 'w').write('new file')
         remove('dflat-test/v002/full/data/dflatspec.pdf')
         delta = dflat.commit('dflat-test')
         self.assertTrue('data/reddspec.html' in delta['modified'])
-        self.assertTrue('data/newfile.txt' in delta['added'])
+        self.assertTrue('data/new file.txt' in delta['added'])
         self.assertTrue('data/dflatspec.pdf' in delta['deleted'])
         self.assertTrue(isdir('dflat-test/v001/delta'))
         self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
@@ -162,7 +162,7 @@ class DflatTests(unittest.TestCase):
         dflat.commit(home)
         # create v003
         dflat.checkout(home)
-        open('dflat-test/v003/full/data/newfile.txt', 'w').write('newfile')
+        open('dflat-test/v003/full/data/new file.txt', 'w').write('new file')
         # commit v003
         dflat.commit(home)
         # create v004
@@ -185,21 +185,21 @@ class DflatTests(unittest.TestCase):
         # export v003 and check it
         dflat.export(home, "v003")
         self.assertTrue(isdir('dflat-test/export-v003'))
-        self.assertTrue(isfile('dflat-test/export-v003/full/data/newfile.txt'))
+        self.assertTrue(isfile('dflat-test/export-v003/full/data/new file.txt'))
         self.assertTrue(isfile('dflat-test/export-v003/full/data/dflatspec.pdf'))
         self.assertEqual(open('dflat-test/export-v003/full/data/reddspec.html').read(), 
                          open('dflat-test/v005/full/data/reddspec.html').read())
         # export v002 and check it
         dflat.export(home, "v002")
         self.assertTrue(isdir('dflat-test/export-v002'))
-        self.assertFalse(isfile('dflat-test/export-v002/full/data/newfile.txt'))
+        self.assertFalse(isfile('dflat-test/export-v002/full/data/new file.txt'))
         self.assertTrue(isfile('dflat-test/export-v002/full/data/dflatspec.pdf'))
         self.assertFileEqual('dflat-test/export-v002/full/data/reddspec.html',
                              'dflat-test/v005/full/data/reddspec.html')
         # export v001 and check it
         dflat.export(home, "v001")
         self.assertTrue(isdir('dflat-test/export-v001'))
-        self.assertFalse(isfile('dflat-test/export-v001/full/data/newfile.txt'))
+        self.assertFalse(isfile('dflat-test/export-v001/full/data/new file.txt'))
         self.assertTrue(isfile('dflat-test/export-v001/full/data/dflatspec.pdf'))
         self.assertNotEqual(open('dflat-test/export-v001/full/data/reddspec.html').read(), 
                          open('dflat-test/v005/full/data/reddspec.html').read())
