@@ -22,8 +22,10 @@ _quiet = False
 def main():
     o = _option_parser()
     values, args = o.parse_args()
-    
-    cmd = args[0]
+    try:
+        cmd = args[0]
+    except IndexError:
+        o.error('no command specified')
     home = _dflat_home(os.getcwd())
     try:
         version = args[1]
@@ -33,6 +35,8 @@ def main():
 
     if cmd == 'init':
         init(os.getcwd())
+    elif cmd == 'help':
+        _print(o.get_usage())
     elif not home:
         _print("not a dflat")
     elif cmd == 'checkout':
@@ -354,7 +358,15 @@ def _dflat_home(directory):
         return _dflat_home(os.path.abspath(os.path.dirname(directory)))
 
 def _option_parser():
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(usage='''usage: %prog <command> [args]
+    
+commands:
+    init      initialize current working directory as a dflat
+    checkout  check out a new version of the dflat for modification
+    commit    commit new version as the current version of the object
+    status    report uncommitted changes to the dflat in the current directory
+    export    export the current version of the dflat into a new directory''')
+    
     return parser
 
 def _set_current(home, v):
