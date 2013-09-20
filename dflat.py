@@ -370,8 +370,6 @@ commands:
     return parser
 
 def _set_current(home, v):
-    # chdir to make symlink relative, so the dflat can be relocated
-    # maybe there's a more elegant way to do this?
     open(j(home, 'current.txt'), 'w').write(v)
 
 def _configure_logger(filename):
