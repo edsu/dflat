@@ -3,7 +3,7 @@ An implementation of the Dflat and ReDD specifications from CDL for
 versioning of digital objects.
 """
 DFLAT_VERSION = '0.16'
-DNATURAL_VERSION = '0.12'
+DNATURAL_VERSION = '0.17'
 REDD_VERSION = '0.1'
 
 import os
@@ -84,8 +84,8 @@ def init(home):
     namaste.dirtype(home, 'dflat_%s' % DFLAT_VERSION, verbose=False)
     info.write(_anvl('Object-scheme', 'Dflat/%s' % DFLAT_VERSION))
     info.write(_anvl('Manifest-scheme', 'Checkm/0.1'))
-    info.write(_anvl('Full-scheme', 'Dnatural/0.12'))
-    info.write(_anvl('Delta-scheme', 'ReDD/0.1'))
+    info.write(_anvl('Full-scheme', 'Dnatural/%s' % DNATURAL_VERSION))
+    info.write(_anvl('Delta-scheme', 'ReDD/%s' % REDD_VERSION))
     info.write(_anvl('Current-scheme', 'file'))
     info.write(_anvl('Class-scheme', 'CLOP/0.3'))
     info.close()
