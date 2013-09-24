@@ -94,7 +94,8 @@ def init(home):
     _set_current(home, version)
     # move original inhabitants into their new apartment
     for filename in contents:
-        os.rename(j(home, filename), j(home, version, 'full', 'data', filename))
+        os.rename(j(home, filename),
+                  j(home, version, 'full', 'producer', filename))
     _update_manifest(j(home, version))
 
     # can't use decorator since the log directory doesn't exist when
@@ -284,14 +285,8 @@ def _new_version(home):
     os.mkdir(j(home, version, 'full'))
     namaste.dirtype(j(home, version, 'full'), 'dnatural_%s' % DNATURAL_VERSION,
                     verbose=False)
-    os.mkdir(j(home, version, 'full', 'admin'))
-    os.mkdir(j(home, version, 'full', 'annotation'))
-    os.mkdir(j(home, version, 'full', 'data'))
-    os.mkdir(j(home, version, 'full', 'enrichment'))
-    os.mkdir(j(home, version, 'full', 'log'))
-    os.mkdir(j(home, version, 'full', 'metadata'))
+    os.mkdir(j(home, version, 'full', 'producer'))
     open(j(home, version, 'manifest.txt'), 'w')
-    open(j(home, version, 'full', 'relationships.ttl'), 'w')
     return version
 
 def _next_version(home):
