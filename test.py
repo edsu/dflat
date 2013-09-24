@@ -32,18 +32,14 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isfile('dflat-test/current.txt'))
         self.assertEqual(open('dflat-test/current.txt').read(), 'v001')
         self.assertTrue(isdir('dflat-test/log'))
-        self.assertTrue(isdir('dflat-test/v001/full/admin'))
-        self.assertTrue(isdir('dflat-test/v001/full/annotation'))
-        self.assertTrue(isdir('dflat-test/v001/full/data'))
-        self.assertTrue(isdir('dflat-test/v001/full/enrichment'))
+        self.assertTrue(isdir('dflat-test/v001/full/producer'))
         self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
-        self.assertTrue(isfile('dflat-test/v001/full/relationships.ttl'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/canspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/checkmspec.html'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/clopspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/dflatspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/namastespec.html'))
-        self.assertTrue(isfile('dflat-test/v001/full/data/reddspec.html'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/canspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/checkmspec.html'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/clopspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/dflatspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/namastespec.html'))
+        self.assertTrue(isfile('dflat-test/v001/full/producer/reddspec.html'))
 
         # check manifest, ordering can be different with different pythons
         manifest = {}
@@ -51,21 +47,19 @@ class DflatTests(unittest.TestCase):
             cols = line.split()
             manifest[cols[0]] = cols[2]
         manifest_files = manifest.keys()
-        self.assertEqual(len(manifest_files), 8)
-        self.assertTrue('relationships.ttl' in manifest_files)
-        self.assertTrue('data/canspec.pdf' in manifest_files)
-        self.assertTrue('data/checkmspec.html' in manifest_files)
-        self.assertTrue('data/clopspec.pdf' in manifest_files)
-        self.assertTrue('data/dflatspec.pdf' in manifest_files)
-        self.assertTrue('data/namastespec.html' in manifest_files)
-        self.assertTrue('data/reddspec.html' in manifest_files)
-        self.assertEqual(manifest['relationships.ttl'], 'd41d8cd98f00b204e9800998ecf8427e')
-        self.assertEqual(manifest['data/canspec.pdf'], '1b1b4a9761cd8bc057f807004e7b2f78')
-        self.assertEqual(manifest['data/checkmspec.html'], '138694ea9958ec66d7cc6e56194f8423')
-        self.assertEqual(manifest['data/clopspec.pdf'], '83b15ce21a9efc504dc421280f6073d8')
-        self.assertEqual(manifest['data/dflatspec.pdf'], 'f79ee8a6b3c79f25308023858d8ce085')
-        self.assertEqual(manifest['data/namastespec.html'], '7cdea11aa319f3a227a108d871285e84')
-        self.assertEqual(manifest['data/reddspec.html'], 'd3fcc19c54d424d53bcd5621fca34183')
+        self.assertEqual(len(manifest_files), 7)
+        self.assertTrue('producer/canspec.pdf' in manifest_files)
+        self.assertTrue('producer/checkmspec.html' in manifest_files)
+        self.assertTrue('producer/clopspec.pdf' in manifest_files)
+        self.assertTrue('producer/dflatspec.pdf' in manifest_files)
+        self.assertTrue('producer/namastespec.html' in manifest_files)
+        self.assertTrue('producer/reddspec.html' in manifest_files)
+        self.assertEqual(manifest['producer/canspec.pdf'], '1b1b4a9761cd8bc057f807004e7b2f78')
+        self.assertEqual(manifest['producer/checkmspec.html'], '138694ea9958ec66d7cc6e56194f8423')
+        self.assertEqual(manifest['producer/clopspec.pdf'], '83b15ce21a9efc504dc421280f6073d8')
+        self.assertEqual(manifest['producer/dflatspec.pdf'], 'f79ee8a6b3c79f25308023858d8ce085')
+        self.assertEqual(manifest['producer/namastespec.html'], '7cdea11aa319f3a227a108d871285e84')
+        self.assertEqual(manifest['producer/reddspec.html'], 'd3fcc19c54d424d53bcd5621fca34183')
 
     def test_checkout(self):
         dflat.init('dflat-test')
@@ -74,30 +68,26 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isfile('dflat-test/dflat-info.txt'))
         self.assertTrue(isfile('dflat-test/current.txt'))
         self.assertTrue(isdir('dflat-test/log'))
-        self.assertTrue(isdir('dflat-test/v002/full/admin'))
-        self.assertTrue(isdir('dflat-test/v002/full/annotation'))
-        self.assertTrue(isdir('dflat-test/v002/full/data'))
-        self.assertTrue(isdir('dflat-test/v002/full/enrichment'))
+        self.assertTrue(isdir('dflat-test/v002/full/producer'))
         self.assertTrue(isfile('dflat-test/v002/manifest.txt'))
-        self.assertTrue(isfile('dflat-test/v002/full/relationships.ttl'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/canspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/checkmspec.html'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/clopspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/dflatspec.pdf'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/namastespec.html'))
-        self.assertTrue(isfile('dflat-test/v002/full/data/reddspec.html'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/canspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/checkmspec.html'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/clopspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/dflatspec.pdf'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/namastespec.html'))
+        self.assertTrue(isfile('dflat-test/v002/full/producer/reddspec.html'))
 
     def test_commit(self):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
         self.assertEqual(dflat._current_version('dflat-test'), 'v001')
-        open('dflat-test/v002/full/data/reddspec.html', 'a').write('mod')
-        open('dflat-test/v002/full/data/new file.txt', 'w').write('new file')
-        remove('dflat-test/v002/full/data/dflatspec.pdf')
+        open('dflat-test/v002/full/producer/reddspec.html', 'a').write('mod')
+        open('dflat-test/v002/full/producer/new file.txt', 'w').write('new file')
+        remove('dflat-test/v002/full/producer/dflatspec.pdf')
         delta = dflat.commit('dflat-test')
-        self.assertTrue('data/reddspec.html' in delta['modified'])
-        self.assertTrue('data/new file.txt' in delta['added'])
-        self.assertTrue('data/dflatspec.pdf' in delta['deleted'])
+        self.assertTrue('producer/reddspec.html' in delta['modified'])
+        self.assertTrue('producer/new file.txt' in delta['added'])
+        self.assertTrue('producer/dflatspec.pdf' in delta['deleted'])
         self.assertTrue(isdir('dflat-test/v001/delta'))
         self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
         self.assertTrue(isfile('dflat-test/v001/d-manifest.txt'))
@@ -106,9 +96,9 @@ class DflatTests(unittest.TestCase):
     def test_status(self):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
-        open('dflat-test/v002/full/data/d', 'w').write('foo')
+        open('dflat-test/v002/full/producer/d', 'w').write('foo')
         status = dflat.status('dflat-test')
-        self.assertTrue('data/d' in status['added'])
+        self.assertTrue('producer/d' in status['added'])
 
     def test_locking(self):
         # create named function objects to test user-agent func
@@ -157,17 +147,17 @@ class DflatTests(unittest.TestCase):
         dflat.init(home)
         # create v002
         dflat.checkout(home)
-        open('dflat-test/v002/full/data/reddspec.html', 'a').write('mod')
+        open('dflat-test/v002/full/producer/reddspec.html', 'a').write('mod')
         # commit v002
         dflat.commit(home)
         # create v003
         dflat.checkout(home)
-        open('dflat-test/v003/full/data/new file.txt', 'w').write('new file')
+        open('dflat-test/v003/full/producer/new file.txt', 'w').write('new file')
         # commit v003
         dflat.commit(home)
         # create v004
         dflat.checkout(home)
-        remove('dflat-test/v004/full/data/dflatspec.pdf')
+        remove('dflat-test/v004/full/producer/dflatspec.pdf')
         # commit v004
         dflat.commit(home)
         # create v005
@@ -179,28 +169,28 @@ class DflatTests(unittest.TestCase):
         # export v004 and check it
         dflat.export(home, "v004")
         self.assertTrue(isdir('dflat-test/export-v004'))
-        self.assertFalse(isfile('dflat-test/export-v004/full/data/dflatspec.pdf'))
-        self.assertEqual(open('dflat-test/export-v004/full/data/reddspec.html').read(), 
-                         open('dflat-test/v005/full/data/reddspec.html').read())
+        self.assertFalse(isfile('dflat-test/export-v004/full/producer/dflatspec.pdf'))
+        self.assertEqual(open('dflat-test/export-v004/full/producer/reddspec.html').read(), 
+                         open('dflat-test/v005/full/producer/reddspec.html').read())
         # export v003 and check it
         dflat.export(home, "v003")
         self.assertTrue(isdir('dflat-test/export-v003'))
-        self.assertTrue(isfile('dflat-test/export-v003/full/data/new file.txt'))
-        self.assertTrue(isfile('dflat-test/export-v003/full/data/dflatspec.pdf'))
-        self.assertEqual(open('dflat-test/export-v003/full/data/reddspec.html').read(), 
-                         open('dflat-test/v005/full/data/reddspec.html').read())
+        self.assertTrue(isfile('dflat-test/export-v003/full/producer/new file.txt'))
+        self.assertTrue(isfile('dflat-test/export-v003/full/producer/dflatspec.pdf'))
+        self.assertEqual(open('dflat-test/export-v003/full/producer/reddspec.html').read(), 
+                         open('dflat-test/v005/full/producer/reddspec.html').read())
         # export v002 and check it
         dflat.export(home, "v002")
         self.assertTrue(isdir('dflat-test/export-v002'))
-        self.assertFalse(isfile('dflat-test/export-v002/full/data/new file.txt'))
-        self.assertTrue(isfile('dflat-test/export-v002/full/data/dflatspec.pdf'))
-        self.assertFileEqual('dflat-test/export-v002/full/data/reddspec.html',
-                             'dflat-test/v005/full/data/reddspec.html')
+        self.assertFalse(isfile('dflat-test/export-v002/full/producer/new file.txt'))
+        self.assertTrue(isfile('dflat-test/export-v002/full/producer/dflatspec.pdf'))
+        self.assertFileEqual('dflat-test/export-v002/full/producer/reddspec.html',
+                             'dflat-test/v005/full/producer/reddspec.html')
         # export v001 and check it
         dflat.export(home, "v001")
         self.assertTrue(isdir('dflat-test/export-v001'))
-        self.assertFalse(isfile('dflat-test/export-v001/full/data/new file.txt'))
-        self.assertTrue(isfile('dflat-test/export-v001/full/data/dflatspec.pdf'))
-        self.assertNotEqual(open('dflat-test/export-v001/full/data/reddspec.html').read(), 
-                         open('dflat-test/v005/full/data/reddspec.html').read())
+        self.assertFalse(isfile('dflat-test/export-v001/full/producer/new file.txt'))
+        self.assertTrue(isfile('dflat-test/export-v001/full/producer/dflatspec.pdf'))
+        self.assertNotEqual(open('dflat-test/export-v001/full/producer/reddspec.html').read(), 
+                         open('dflat-test/v005/full/producer/reddspec.html').read())
         
