@@ -19,18 +19,22 @@ class DflatTests(unittest.TestCase):
         if isdir('dflat-test'):
             rmtree('dflat-test')
 
-    def assertFileEqual(self, f1, f2):
-        if open(f1).read() == open(f2).read():
-            pass
-        else:
-            self.fail("%s not the same as %s" % (f1, f2))
+    def assertFileEqual(self, fname1, fname2):
+        with open(fname1) as f1:
+            with open(fname2) as f2:
+                if f1.read() == f2.read():
+                    pass
+                else:
+                    self.fail("%s not the same as %s" % (fname1, fname2))
+
 
     def test_init(self):
         dflat.init('dflat-test')
         self.assertTrue(isdir('dflat-test'))
         self.assertTrue(isfile('dflat-test/dflat-info.txt'))
         self.assertTrue(isfile('dflat-test/current.txt'))
-        self.assertEqual(open('dflat-test/current.txt').read(), 'v001')
+        with open('dflat-test/current.txt') as f:
+            self.assertEqual(f.read(), 'v001')
         self.assertTrue(isdir('dflat-test/log'))
         self.assertTrue(isdir('dflat-test/v001/full/producer'))
         self.assertTrue(isfile('dflat-test/v001/manifest.txt'))
@@ -43,10 +47,11 @@ class DflatTests(unittest.TestCase):
 
         # check manifest, ordering can be different with different pythons
         manifest = {}
-        for line in open('dflat-test/v001/manifest.txt'):
-            cols = line.split()
-            manifest[cols[0]] = cols[2]
-        manifest_files = manifest.keys()
+        with open('dflat-test/v001/manifest.txt') as f:
+            for line in f:
+                cols = line.split()
+                manifest[cols[0]] = cols[2]
+        manifest_files = list(manifest.keys())
         self.assertEqual(len(manifest_files), 7)
         self.assertTrue('producer/canspec.pdf' in manifest_files)
         self.assertTrue('producer/checkmspec.html' in manifest_files)
@@ -81,8 +86,10 @@ class DflatTests(unittest.TestCase):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
         self.assertEqual(dflat._current_version('dflat-test'), 'v001')
-        open('dflat-test/v002/full/producer/reddspec.html', 'a').write('mod')
-        open('dflat-test/v002/full/producer/new file.txt', 'w').write('new file')
+        with open('dflat-test/v002/full/producer/reddspec.html', 'a') as f1:
+            f1.write('mod')
+        with open('dflat-test/v002/full/producer/new file.txt', 'w') as f2:
+            f2.write('new file')
         remove('dflat-test/v002/full/producer/dflatspec.pdf')
         delta = dflat.commit('dflat-test')
         self.assertTrue('producer/reddspec.html' in delta['modified'])
@@ -96,7 +103,8 @@ class DflatTests(unittest.TestCase):
     def test_status(self):
         dflat.init('dflat-test')
         dflat.checkout('dflat-test')
-        open('dflat-test/v002/full/producer/d', 'w').write('foo')
+        with open('dflat-test/v002/full/producer/d', 'w') as f:
+            f.write('foo')
         status = dflat.status('dflat-test')
         self.assertTrue('producer/d' in status['added'])
 
@@ -107,8 +115,9 @@ class DflatTests(unittest.TestCase):
         def commit(): pass
         # open the lockfile and spit out, e.g.:
         #   ["Lock:", "2009-08-10T09:09:09.000000", "dflat-init"]
-        def contents(f):
-            return open(f).read().strip().split()
+        def contents(fname):
+            with open(fname) as f:
+                return f.read().strip().split()
         lockfile = 'dflat-test/lock.txt'
         # lockfile should not already exist
         self.assertFalse(isfile(lockfile))
@@ -147,12 +156,14 @@ class DflatTests(unittest.TestCase):
         dflat.init(home)
         # create v002
         dflat.checkout(home)
-        open('dflat-test/v002/full/producer/reddspec.html', 'a').write('mod')
+        with open('dflat-test/v002/full/producer/reddspec.html', 'a') as f1:
+            f1.write('mod')
         # commit v002
         dflat.commit(home)
         # create v003
         dflat.checkout(home)
-        open('dflat-test/v003/full/producer/new file.txt', 'w').write('new file')
+        with open('dflat-test/v003/full/producer/new file.txt', 'w') as f2:
+            f2.write('new file')
         # commit v003
         dflat.commit(home)
         # create v004
@@ -170,15 +181,17 @@ class DflatTests(unittest.TestCase):
         dflat.export(home, "v004")
         self.assertTrue(isdir('dflat-test/export-v004'))
         self.assertFalse(isfile('dflat-test/export-v004/full/producer/dflatspec.pdf'))
-        self.assertEqual(open('dflat-test/export-v004/full/producer/reddspec.html').read(), 
-                         open('dflat-test/v005/full/producer/reddspec.html').read())
+        with open('dflat-test/export-v004/full/producer/reddspec.html') as f3:
+            with open('dflat-test/v005/full/producer/reddspec.html') as f4:
+                self.assertEqual(f3.read(), f4.read())
         # export v003 and check it
         dflat.export(home, "v003")
         self.assertTrue(isdir('dflat-test/export-v003'))
         self.assertTrue(isfile('dflat-test/export-v003/full/producer/new file.txt'))
         self.assertTrue(isfile('dflat-test/export-v003/full/producer/dflatspec.pdf'))
-        self.assertEqual(open('dflat-test/export-v003/full/producer/reddspec.html').read(), 
-                         open('dflat-test/v005/full/producer/reddspec.html').read())
+        with open('dflat-test/export-v003/full/producer/reddspec.html') as f5:
+            with open('dflat-test/v005/full/producer/reddspec.html') as f6:
+                self.assertEqual(f5.read(), f6.read())
         # export v002 and check it
         dflat.export(home, "v002")
         self.assertTrue(isdir('dflat-test/export-v002'))
@@ -191,6 +204,9 @@ class DflatTests(unittest.TestCase):
         self.assertTrue(isdir('dflat-test/export-v001'))
         self.assertFalse(isfile('dflat-test/export-v001/full/producer/new file.txt'))
         self.assertTrue(isfile('dflat-test/export-v001/full/producer/dflatspec.pdf'))
-        self.assertNotEqual(open('dflat-test/export-v001/full/producer/reddspec.html').read(), 
-                         open('dflat-test/v005/full/producer/reddspec.html').read())
+        with open('dflat-test/export-v001/full/producer/reddspec.html') as f7:
+            with open('dflat-test/v005/full/producer/reddspec.html') as f8:
+                self.assertNotEqual(f7.read(), f8.read())
         
+if __name__ == "__main__":
+    unittest.main()
