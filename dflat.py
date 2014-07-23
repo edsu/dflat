@@ -8,6 +8,7 @@ REDD_VERSION = '0.1'
 
 import os
 import re
+import sys
 import time
 import shutil
 import hashlib
@@ -17,9 +18,9 @@ import os.path
 import datetime
 import optparse
 from functools import wraps
-try:
+if sys.version_info.major >= 3:
     from urllib.parse import quote, unquote
-except ImportError:
+else:
     from urllib import quote, unquote
 
 # short alias for this since we call it a lot
