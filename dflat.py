@@ -8,8 +8,8 @@ REDD_VERSION = '0.1'
 
 import os
 import re
+import sys
 import time
-import urllib
 import shutil
 import hashlib
 import logging
@@ -18,6 +18,10 @@ import os.path
 import datetime
 import optparse
 from functools import wraps
+if sys.version_info.major >= 3:
+    from urllib.parse import quote, unquote
+else:
+    from urllib import quote, unquote
 
 # short alias for this since we call it a lot
 j = os.path.join
@@ -148,7 +152,7 @@ def commit(home): #, msg=None):
         changed = True
         delete = open(j(redd_home, 'delete.txt'), 'w')
         for filename in delta['added']:
-            delete.write("%s\n" % urllib.quote(filename))
+            delete.write("%s\n" % quote(filename))
         delete.close()
 
     if len(delta['modified']) > 0:
@@ -157,7 +161,7 @@ def commit(home): #, msg=None):
             os.mkdir(j(redd_home, 'add'))
         delete = open(j(redd_home, 'delete.txt'), 'a')
         for filename in delta['modified']:
-            delete.write("%s\n" % urllib.quote(filename))
+            delete.write("%s\n" % quote(filename))
             os.renames(j(home, current_version, 'full', filename),
                        j(redd_home, 'add', filename))
         delete.close()
@@ -195,10 +199,11 @@ def export(home, version):
     for delta in delta_versions:
         # delete deleted files
         if os.path.isfile(j(home, delta, 'delta', 'delete.txt')):
-            deletes = open(j(home, delta, 'delta', 'delete.txt')).read().split()
-            for delete in deletes:
-                os.remove(j(home, export_version, 'full',
-                            urllib.unquote(delete)))
+            with open(j(home, delta, 'delta', 'delete.txt')) as f:
+                deletes = f.read().split()
+                for delete in deletes:
+                    os.remove(j(home, export_version, 'full',
+                                unquote(delete)))
 
         # add added files
         if os.path.isdir(j(home, delta, 'delta', 'add')):
@@ -242,7 +247,7 @@ def _update_manifest(version_dir, is_delta=False):
             # make the filename relative to the container directory
             dirpath = re.sub(r'^%s/?' % container_dir, '', dirpath)
             md5 = _md5(j(container_dir, dirpath, filename))
-            filename = urllib.quote(j(dirpath, filename))
+            filename = quote(j(dirpath, filename))
             manifest.write("%s md5 %s\n" % (filename, md5))
     manifest.close()
     return manifest_file
@@ -251,7 +256,8 @@ def _current_version(home):
     """Return the current version of the Dflat."""
     current_file = j(home, 'current.txt')
     if os.path.isfile(current_file):
-        return open(current_file, 'r').read()
+        with open(current_file, 'r') as f:
+            return f.read()
     return None
 
 def _anvl(name, value):
@@ -265,7 +271,7 @@ def _get_lock(home, caller):
     if os.path.isfile(lockfile):
         raise Exception("already locked")
     timestamp = _rfc3339(datetime.datetime.now())
-    agent = "dflat-%s" % caller.func_name
+    agent = "dflat-%s" % caller.__name__
     lockfile = open(lockfile, 'w')
     lockfile.write("Lock: %s %s\n" % (timestamp, agent))
     lockfile.close()
@@ -286,7 +292,7 @@ def _new_version(home):
     namaste.dirtype(j(home, version, 'full'), 'dnatural_%s' % DNATURAL_VERSION,
                     verbose=False)
     os.mkdir(j(home, version, 'full', 'producer'))
-    open(j(home, version, 'manifest.txt'), 'w')
+    open(j(home, version, 'manifest.txt'), 'w').close()
     return version
 
 def _next_version(home):
@@ -314,9 +320,11 @@ def _versions(home, reverse=False, from_version=None, to_version=None):
     if to_version:
         versions = [x for x in versions
                     if _version_number(x) >= _version_number(to_version)]
-    versions.sort(lambda a, b: cmp(_version_number(a), _version_number(b)))
+    #versions.sort(lambda a, b: cmp(_version_number(a), _version_number(b)))
+    versions.sort(key=_version_number)
     if reverse:
-        versions.sort(lambda a, b: cmp(_version_number(b), _version_number(a)))
+        #versions.sort(lambda a, b: cmp(_version_number(b), _version_number(a)))
+        versions.sort(key=_version_number, reverse=True)
     return versions
 
 def _version_number(version_dir):
@@ -343,14 +351,14 @@ def _delta(home, old_version, new_version):
     delta = {'modified': [], 'deleted': [], 'added': []}
     manifest_old_version = _manifest_dict(home, old_version)
     manifest_new_version = _manifest_dict(home, new_version)
-    for filename in manifest_new_version.keys():
-        if manifest_old_version.has_key(filename):
+    for filename in list(manifest_new_version.keys()):
+        if filename in manifest_old_version:
             if manifest_new_version[filename] != manifest_old_version[filename]:
                 delta['modified'].append(filename)
         else:
             delta['added'].append(filename)
-    for filename in manifest_old_version.keys():
-        if not manifest_new_version.has_key(filename):
+    for filename in list(manifest_old_version.keys()):
+        if filename not in manifest_new_version:
             delta['deleted'].append(filename)
     return delta
 
@@ -361,11 +369,11 @@ def _print_delta_files(delta, dtype):
     if len(files) > 0:
         _print("%s:" % dtype)
         for filename in files:
-            _print("  %s" % urllib.unquote(filename))
+            _print("  %s" % unquote(filename))
 
 def _has_changes(delta):
     """Does the delta contain any changes?"""
-    for value in delta.values():
+    for value in list(delta.values()):
         if len(value) > 0:
             return True
     return False
@@ -373,12 +381,13 @@ def _has_changes(delta):
 def _manifest_dict(home, version):
     """Parse a Checkm manifest into a dictionary."""
     manifest_dict = {}
-    for line in open(j(home, version, 'manifest.txt')):
-        if line.startswith('#'):
-            continue
-        cols = line.split()
-        manifest_dict[urllib.unquote(cols[0])] = cols[2]
-    return manifest_dict
+    with open(j(home, version, 'manifest.txt')) as f:
+        for line in f:
+            if line.startswith('#'):
+                continue
+            cols = line.split()
+            manifest_dict[unquote(cols[0])] = cols[2]
+        return manifest_dict
 
 def _dflat_home(directory):
     """
@@ -407,7 +416,8 @@ commands:
 
 def _set_current(home, version):
     """Update the Dflat with the current version label."""
-    open(j(home, 'current.txt'), 'w').write(version)
+    with open(j(home, 'current.txt'), 'w') as f:
+        f.write(version)
 
 def _configure_logger(filename):
     """Configure the logger."""
@@ -434,7 +444,7 @@ def _rfc3339(dt):
 def _print(msg):
     """Print messages when in verbose mode."""
     if not _QUIET:
-        print msg
+        print(msg)
 
 def _copy_tree(src_dir, dest_dir):
     """
@@ -455,4 +465,3 @@ def _copy_tree(src_dir, dest_dir):
             _copy_tree(src, dest)
         else:
             shutil.copy2(src, dest) # copy2 preserves permissions
-
