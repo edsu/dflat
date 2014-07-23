@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name = 'dflat',
-    version = '0.5',
+    version = '0.6',
     description = "a command line tool for working with dflat digital preservation file systems",
     author = "Ed Summers",
     author_email = "ehs@pobox.com",
