@@ -1,4 +1,4 @@
-A python client implementation of the dflat [1] and redd [2] specifications
+A python client implementation of the [dflat] and [redd] specifications
 for versioning of simple filesystem based digital objects.
 
 Installation:
@@ -15,5 +15,5 @@ Usage:
   dflat commit
   dflat export v001  
 
-[1] http://www.cdlib.org/inside/diglib/dflat/dflatspec.pdf
-[2] http://www.cdlib.org/inside/diglib/redd/reddspec.html
+[dflat]: http://www.cdlib.org/inside/diglib/dflat/dflatspec.pdf
+[redd]: http://www.cdlib.org/inside/diglib/redd/reddspec.html
